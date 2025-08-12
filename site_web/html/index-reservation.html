@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sitio web de reservas de mesas para un restaurante cinco (5) estrellas y de 3 pisos en Quindío, Colombia con vistas impresionantes">
+    <!--FONTS-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Edu+QLD+Beginner:wght@700&display=swap" rel="stylesheet">
+    <!--FONTS-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&display=swap" rel="stylesheet">
+    <!--FONTS-->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> <!--Tailwind CDN-->
+    <link rel="stylesheet" href="/template/template.css"> <!--CSS Temlplate-->
+    <link rel="stylesheet" href="/site_web/css/reservation.css"> <!--CSS reservation-->
+    <link rel="stylesheet" href="/site_web/css/font-family.css"> <!--Fonts CSS-->
+    <title>Reserva Tu Mesa</title><link rel="shortcut icon" href="/site_web/multimedia/index/FAVICON.png" type="image/x-icon">
+</head>
+<body class="">
+    <header>
+        <nav class="mt-4 mb-6">
+            <ol class="flex justify-around">
+                <li class="img-logo"><div><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logotipo"></div></li>
+                <li class="mozilla-headline"><div><a href="/site_web/html/f&q.html"><p>F&Q</p></a></div></li>
+            </ol>
+        </nav>
+    </header>
+    <section>
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const mesas = document.getElementsByClassName("mesa");
+
+            for (let i = 0; i < mesas.length; i++) {
+                mesas[i].addEventListener('click', () => {
+                    // Cambia directamente entre 'tables' y 'tables-ok'
+                    mesas[i].classList.toggle('tables');
+                    mesas[i].classList.toggle('tables-ok');
+
+                    if (mesas[i].classList.contains('tables-ok')) {
+                        console.log("Mesa Reservada");
+                    } else {
+                        console.log("Mesa Sin reservar");
+                    }
+                });
+            }
+        });
+        </script>
+        <article class="mt-15"> <!--Floor 1-->
+            <ul> <!--Icons-->
+                <li class="flex justify-evenly">  
+                    <div class="pisos edu-qld-beginner-bold">Piso 1</div>
+                    <div class="kitchen"></div>
+                </li>
+                <li class="landscape"></li>
+                <li class="scapeland"></li>
+            </ul>
+            <div class="pl-50 pr-50"> <!--Tables-->
+                <div id="sect-1"><!--First tables-->
+                    <ul class="flex justify-evenly">
+                        <li class="tables mesa"></li> <!--Table 1-->
+                        <li class="tables mesa"></li> <!--Table 2-->
+                        <li class="tables mesa"></li> <!--Table 3-->
+                    </ul>
+                </div>
+                <div class="sect-2"><!--3rd a 6th table-->
+                    <ul class="flex justify-around">
+                        <li class="mesa tables"></li> <!--Table 4-->
+                        <li class="mesa tables"></li> <!--Table 5-->
+                        <li class="mesa tables"></li> <!--Table 6-->
+                    </ul>
+                </div>
+                <div class="sect-3"><!--7th a 10th Mesa-->
+                    <ul class="flex justify-evenly">
+                        <li class="mesa tables"></li> <!--Table 7-->
+                        <li class="mesa tables"></li> <!--Table 8-->
+                        <li class="mesa tables"></li> <!--Table 9-->
+                    </ul>
+                </div>
+                <div class="flex justify-center"> <!--Exit Icon-->
+                    <div class="exit"></div>
+                </div>
+            </div>
+        </article>
+        <article class="mt-30"> <!--Floor 2-->
+            <ul>
+                <li class="flex justify-evenly">
+                    <div class="pisos edu-qld-beginner-bold">Piso 2</div>
+                    <div class="scape"></div>
+                </li>
+                <li class="landscape"></li>
+                <li class="scapeland"></li>
+            </ul>
+            <div class="pl-50 pr-50 piso2"> <!--Tables-->
+                <div id="sect-1"><!--First tables-->
+                    <ul class="flex justify-evenly">
+                        <li class="mesa tables"></li> <!--Table 1-->
+                        <li class="mesa tables"></li> <!--Table 2-->
+                        <li class="mesa tables"></li> <!--Table 3-->
+                    </ul>
+                </div>
+                <div class="sect-2"><!--3rd a 6th table-->
+                    <ul class="flex justify-around">
+                        <li class="mesa tables"></li> <!--Table 4-->
+                        <li class="mesa tables"></li> <!--Table 5-->
+                        <li class="mesa tables"></li> <!--Table 6-->
+                    </ul>
+                </div>
+                <div class="sect-3"><!--7th a 10th Mesa-->
+                    <ul class="flex justify-evenly">
+                        <li class="mesa tables"></li> <!--Table 7-->
+                        <li class="mesa tables"></li> <!--Table 8-->
+                        <li class="mesa tables"></li> <!--Table 9-->
+                    </ul>
+                </div>
+            </div>
+        </article>
+        <article class="mt-30 piso3"> <!--Piso 3-->
+            <ul>
+                <li class="flex justify-evenly">
+                    <div class="pisos edu-qld-beginner-bold">Piso 3</div>
+                    <div class="scape"></div>
+                </li>
+                <li class="landscape"></li>
+                <li class="scapeland"></li>
+            </ul>
+            <div class="pl-50 pr-50"> <!--Tables-->
+                <div id="sect-1"><!--First tables-->
+                    <ul class="flex justify-evenly">
+                        <li class="mesa tables"></li> <!--Table 1-->
+                        <li class="mesa tables"></li> <!--Table 2-->
+                        <li class="mesa tables"></li> <!--Table 3-->
+                    </ul>
+                </div>
+                <div class="sect-2"><!--3rd a 6th table-->
+                    <ul class="flex justify-around">
+                        <li class="mesa tables"></li> <!--Table 4-->
+                        <li class="mesa tables"></li> <!--Table 5-->
+                        <li class="mesa tables"></li> <!--Table 6-->
+                    </ul>
+                </div>
+                <div class="sect-3"><!--7th a 10th Mesa-->
+                    <ul class="flex justify-evenly">
+                        <li class="mesa tables"></li> <!--Table 7-->
+                        <li class="mesa tables"></li> <!--Table 8-->
+                        <li class="mesa tables"></li> <!--Table 9-->
+                    </ul>
+                </div>
+            </div>
+        </article>
+    </section>
+    <footer class="mt-13 mb-5 mozilla-headline">
+        <ul class="flex justify-around">
+          <li class="img-logo"><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logo"></li>
+          <li>
+            <p>Copyright Licence - Reservation</p>
+            <p>Created by <a class="enlace p-3" href="https://gravatar.com/cafeconalejo">Pixelcraft</a></p>
+          </li>
+          <li class=""><a class="p-3" href="#">Restaurant's Instagram</a></li> <!--Instagram del negocio-->
+          <li class="admin p-3"><a href="#" alt="Admin Access"></a></li>
+        </ul>
+    </footer>
+</body>
+</html>

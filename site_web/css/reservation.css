@@ -1,4 +1,5 @@
 .tables{
+    cursor:pointer;
     transition-duration:200ms;
     padding:57px;
     max-width:40px;
@@ -7,7 +8,7 @@
     background-size:cover;
 }
 .tables-ok{
-    cursor:grab;
+    cursor:default;
     transition-duration:250ms;
     padding:53px;
     max-width:40px;
@@ -15,7 +16,7 @@
     background-repeat:no-repeat;
     background-size:cover;}
 .tables:hover{
-    cursor:grab;
+    cursor:pointer;
     transition-duration:250ms;
     padding:57px;
     max-width:40px;
@@ -76,4 +77,20 @@
 }
 .pisos{
     font-size:20px;
+}
+.admin{
+    transition-duration:250ms;
+    background-position:cover;
+    background-repeat:no-repeat;
+    background-image:url(/site_web/multimedia/reservation/empleado-del-mes.png);
+    background-size:cover;
+    padding:25px;
+}
+.admin:hover{
+    transition-duration:250ms;
+    background-position:cover;
+    background-repeat:no-repeat;
+    background-image:url(/site_web/multimedia/reservation/empleado-del-mes-we.png);
+    background-size:cover;
+    padding:25px;
 }
