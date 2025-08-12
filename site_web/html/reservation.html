@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sitio web de reservas de mesas para un restaurante cinco (5) estrellas en Quindío, Colombia">
+    <meta name="description" content="Sitio web de reservas de mesas para un restaurante cinco (5) estrellas y de 3 pisos en Quindío, Colombia con vistas impresionantes">
+    <!--FONTS-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Edu+QLD+Beginner:wght@700&display=swap" rel="stylesheet">
+    <!--FONTS-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&display=swap" rel="stylesheet">
+    <!--FONTS-->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> <!--Tailwind CDN-->
     <link rel="stylesheet" href="/template/template.css"> <!--CSS Temlplate-->
     <link rel="stylesheet" href="/site_web/css/reservation.css"> <!--CSS reservation-->
+    <link rel="stylesheet" href="/site_web/css/font-family.css"> <!--Fonts CSS-->
     <title>Reserva Tu Mesa</title><link rel="shortcut icon" href="/site_web/multimedia/index/FAVICON.png" type="image/x-icon">
 </head>
 <body class="">
@@ -14,15 +24,15 @@
         <nav class="mt-4 mb-6">
             <ol class="flex justify-around">
                 <li class="img-logo"><div><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logotipo"></div></li>
-                <li class=""><div><a href="/"><p>F&Q</p></a></div></li>
+                <li class="mozilla-headline"><div><a href="/site_web/html/f&q.html"><p>F&Q</p></a></div></li>
             </ol>
         </nav>
     </header>
     <section>
-        <article class="mt-15"> <!--Piso 1-->
+        <article class="mt-15 piso1"> <!--Piso 1-->
             <ul>
                 <li class="flex justify-evenly">  
-                    <div class="pisos">Piso 1</div>
+                    <div class="pisos edu-qld-beginner-bold">Piso 1</div>
                     <div class="kitchen"></div>
                 </li>
                 <li class="landscape"></li>
@@ -57,10 +67,10 @@
                 </div>
             </div>
         </article>
-        <article class="mt-30"> <!--Piso 2-->
+        <article class="mt-30 piso2"> <!--Piso 2-->
             <ul>
                 <li class="flex justify-evenly">
-                    <div class="pisos">Piso 2</div>
+                    <div class="pisos edu-qld-beginner-bold">Piso 2</div>
                     <div class="scape"></div>
                 </li>
                 <li class="landscape"></li>
@@ -92,10 +102,10 @@
                 </form>
             </div>
         </article>
-        <article class="mt-30"> <!--Piso 3-->
+        <article class="mt-30 piso3"> <!--Piso 3-->
             <ul>
                 <li class="flex justify-evenly">
-                    <div class="pisos">Piso 3</div>
+                    <div class="pisos edu-qld-beginner-bold">Piso 3</div>
                     <div class="scape"></div>
                 </li>
                 <li class="landscape"></li>
@@ -128,7 +138,7 @@
             </div>
         </article>
     </section>
-    <footer class="mt-13">
+    <footer class="mt-13 mozilla-headline">
         <ul class="flex justify-around">
           <li class="img-logo"><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logo"></li>
           <li>
