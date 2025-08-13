@@ -45,9 +45,38 @@
                         console.log("Mesa Sin reservar");
                     }
                 });
+
+
             }
         });
         </script>
+        <style>
+             /* Tooltip */
+            .tooltip {
+                position: absolute;
+                bottom: 54vh; /* encima de la mesa */
+                left: 66.7vh;
+                transform: translateX(-50%);
+                color: rgba(255, 255, 255, 0);
+                padding-top: 27px;
+                padding-bottom: 27px;
+                padding-left:8px;
+                padding-right:8px;
+                font-size: 15px;
+                white-space: nowrap;
+                z-index: 100;
+                transition-duration:200ms;
+            }
+
+            /* Mostrar tooltip al pasar el mouse */
+            .tooltip:hover {
+                color: rgba(255, 255, 255, 0.726);
+                background: rgba(0,0,0,0.8);
+                border-radius:16px;
+                display:block;
+                position:absolute;
+            }
+        </style>
         <article class="mt-15"> <!--Floor 1-->
             <ul> <!--Icons-->
                 <li class="flex justify-evenly">  
@@ -60,7 +89,7 @@
             <div class="pl-50 pr-50"> <!--Tables-->
                 <div id="sect-1"><!--First tables-->
                     <ul class="flex justify-evenly">
-                        <li class="tables mesa"></li> <!--Table 1-->
+                        <li class="tables mesa"><div class="tooltip">Haz clic para más detalles</div></li> <!--Table 1-->
                         <li class="tables mesa"></li> <!--Table 2-->
                         <li class="tables mesa"></li> <!--Table 3-->
                     </ul>

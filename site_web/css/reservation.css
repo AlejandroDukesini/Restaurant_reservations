@@ -1,8 +1,7 @@
 .tables{
     cursor:pointer;
-    transition-duration:200ms;
+    transition-duration:270ms;
     padding:57px;
-    max-width:40px;
     background-image:url("/site_web/multimedia/reservation/mesa-sin-reservar.png");
     background-repeat:no-repeat;
     background-size:cover;
@@ -10,25 +9,18 @@
 .tables-ok{
     cursor:default;
     transition-duration:250ms;
-    padding:53px;
-    max-width:40px;
+    padding:57px;
     background-image:url("/site_web/multimedia/reservation/mesa-reservada.png");
     background-repeat:no-repeat;
     background-size:cover;}
 .tables:hover{
-    cursor:pointer;
     transition-duration:250ms;
-    padding:57px;
-    max-width:40px;
     background-image:url("/site_web/multimedia/reservation/mesa-hover.png");
-    background-repeat:no-repeat;
-    background-size:cover;
 }
 .kitchen{
     cursor:default;
     transition-duration:250ms;
     padding:30px;
-    max-width:40px;
     background-image:url("/site_web/multimedia/reservation/kitchen.png");
     background-repeat:no-repeat;
     background-size:cover;
@@ -37,7 +29,6 @@
     cursor:default;
     transition-duration:250ms;
     padding:30px;
-    max-width:40px;
     position:absolute;
     margin-left: 120px;
     margin-top:145px;
@@ -49,7 +40,6 @@
     cursor:default;
     transition-duration:250ms;
     padding:30px;
-    max-width:40px;
     position:absolute;
     margin-left: 90%;
     margin-top:145px;
@@ -61,7 +51,6 @@
     cursor:default;
     transition-duration:250ms;
     padding:30px;
-    max-width:40px;
     background-image:url("/site_web/multimedia/reservation/rural.png");
     background-repeat:no-repeat;
     background-size:cover;
@@ -70,7 +59,6 @@
     cursor:default;
     transition-duration:250ms;
     padding:30px;
-    max-width:40px;
     background-image:url("/site_web/multimedia/reservation/no-hay-entrada.png");
     background-repeat:no-repeat;
     background-size:cover;
@@ -87,10 +75,5 @@
     padding:25px;
 }
 .admin:hover{
-    transition-duration:250ms;
-    background-position:cover;
-    background-repeat:no-repeat;
     background-image:url(/site_web/multimedia/reservation/empleado-del-mes-we.png);
-    background-size:cover;
-    padding:25px;
 }
