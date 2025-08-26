@@ -77,3 +77,23 @@
 .admin:hover{
     background-image:url(/site_web/multimedia/reservation/empleado-del-mes-we.png);
 }
+.tooltip-css{
+    position: absolute;
+    transform: translateX(-50%);
+    color: #2fff0000;
+    padding-top: 27px;
+    padding-bottom: 27px;
+    padding-left:8px;
+    padding-right:8px;
+    font-size: 15px;
+    white-space: nowrap;
+    z-index: 100;
+    transition-duration:200ms;
+}
+.tooltip-css:hover{
+    color: rgba(255, 255, 255, 0.726);
+    background: rgba(0,0,0,0.8);
+    border-radius:16px;
+    display:block;
+    position:absolute;
+}
