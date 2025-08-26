@@ -1,3 +1,7 @@
+article option{
+    text-align: center;
+    color:black;
+}
 /* Tooltip First Table */
 .tooltip11 {
     bottom: 54vh; /* In the table*/

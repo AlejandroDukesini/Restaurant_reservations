@@ -21,9 +21,17 @@
     <link rel="stylesheet" href="/site_web/css/tooltips-floor-one.css"> <!--Tooltips Floor 1 CSS-->
     <link rel="stylesheet" href="/site_web/css/tooltips-floor-two.css"> <!--Tooltips Floor 2 CSS-->
     <link rel="stylesheet" href="/site_web/css/tooltips-floor-third.css"> <!--Tooltips Floor 3 CSS-->
-    <script src="/site_web/js/pisos.js"></script>
+    <link rel="stylesheet" href="/site_web/css/timeout.css"> <!--CSS timeout-->
+    <script src="/site_web/js/pisos.js"></script> <!--JS Changes floor-->
+    <script src="/site_web/js/timeout.js"></script> <!--Charger Display-->
     <title>Reserva Tu Mesa</title><link rel="shortcut icon" href="/site_web/multimedia/index/FAVICON.png" type="image/x-icon">
 </head>
+<!-- Loader -->
+<div id="loader">
+  <div class="spinner"></div>
+  <p>Cargando el Piso...</p>
+</div>
+
 <body class="">
     <header>
         <nav class="mt-4 mb-6">
@@ -34,11 +42,6 @@
         </nav>
     </header>
     <section>
-        <style>
-            article option{
-                color:black;
-            }
-        </style>
         <article class="mt-15"> <!--Floor 1-->
             <ul> <!--Icons-->
                 <li class="flex justify-evenly"> 
@@ -52,7 +55,7 @@
                         </select>
                         <br><br>
                     </form>
-                    <div class="kitchen"></div>
+                    <div class="scape"></div>
                 </li>
                 <li class="landscape"></li>
                 <li class="scapeland"></li>
