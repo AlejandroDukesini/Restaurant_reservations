@@ -16,31 +16,90 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="/template/template.css">
     <link rel="stylesheet" href="/site_web/css/font-family.css">
-    <title>Template</title><link rel="shortcut icon" href="/site_web/multimedia/index/FAVICON.png" type="image/x-icon">Z
+    <link rel="stylesheet" href="/site_web/css/tables.css">
+    <title>Template</title><link rel="shortcut icon" href="/site_web/multimedia/index/FAVICON.png" type="image/x-icon">
 </head>
 <body class="">
     <header>
         <nav class="mt-5">
             <ol class="flex justify-around">
-                <li class=""><div><img src="/" alt="Logotipo"></div></li>
-                <li class=""><div><a href="/"><p>F&Q</p></a></div></li>
+                <li class="img-logo"><div><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logotipo"></div></li>
+                <li class="mozilla-headline"><div><a href="/site_web/html/f&q.html"><p>F&Q</p></a></div></li>
             </ol>
         </nav>
     </header>
-    <section class="">
-        <article class="">
+    <section class="flex justify-around mt-7">
+        <article class="visionist"><!--Foto de la mesa-->
+            <ul class="">
+                <li class="vimage-one"><img src="/" alt="Archivo multimedia para previsualizar donde te ubicarás en el restaurante visión frontal"></li>
+                <!-- <li class="vimage-two"><img src="/" alt="Archivo multimedia para previsualizar donde te ubicarás en el restaurante visión cenital"></li>
+                <li><imgclass="vimage-three" src="/" alt="Archivo multimedia para previsualizar donde te ubicarás en el restaurante enfocando a los detalles"></li> -->
+            </ul>
         </article>
-        <article class="">
+        <article class="textion">
+            <div class="vdesc"><!--Descripción de la mesa-->
+                <div class="flex justify-center">
+                    <p class="tdtitle">Mesa 1</p>
+                </div>
+                <div class="desc-desce">
+                    <p class="ddesc">
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad facilis fuga accusantium aperiam. Ut modi quidem, unde quos dicta enim eveniet doloribus labore quis excepturi consequuntur numquam, eum, porro eaque.
+                    </p>
+                </div>
+            </div>
+            <div class="vpay flex justify-around mt-10"><!--precio y registro-->
+                <div>
+                    <form action="#" method="post">
+                        <label for="nombre">Nombre del representante:</label>
+                        <input type="text" id="nombre" name="nombre" required><br><br>
+                        
+                        <label for="correo">Correo del representante:</label>
+                        <input type="email" id="correo" name="correo" required><br><br>
+                        
+                        <label for="personas">Número de personas a entrar:</label>
+                        <input type="number" id="personas" name="personas" min="1" max="4" required><br><br>                    
+                    </form>
+                    <div class="flex justify-center vvpay">
+                        <button type="submit">Enviar y pagar</button>
+                    </div>
+                </div>
+                <div class="vprize"><!--Precio-->
+                    <div>
+                        $ <id="precio">50<><p> EUR cada ticket</p>
+                        <p>subtotal</p>
+                    </div>
+                </div>
+                 <script>
+                    function calcularPago() {
+                        // Obtén los valores de los inputs
+                        const personas = parseInt(document.getElementById('personas').value);
+                        const precio = parseFloat(document.getElementById('precio').value);
+                        
+                        // Verifica si son números válidos y positivos
+                        if (isNaN(personas) || isNaN(precio) || personas <= 0 || precio < 0) {
+                            document.getElementById('resultado').textContent = 'Total a pagar: Por favor, ingresa valores válidos (número de personas > 0, precio >= 0).';
+                            return;
+                        }
+                        
+                        // Calcula el total: personas * precio
+                        const total = personas * precio;
+                        
+                        // Muestra el resultado en el elemento HTML
+                        document.getElementById('resultado').textContent = 'Total a pagar: $' + total.toFixed(2); // Formatea a 2 decimales
+                    }
+                </script>
+            </div> 
         </article>
     </section>
-    <footer class="mt-25">
-        <ul class="flex justify-aroun">
-          <li class=""><img src="/site_web/multimedia/index/banner.jpeg" alt="Logo"></li>
+    <footer class="mt-13 mb-5 mozilla-headline">
+        <ul class="flex justify-around">
+          <li class="img-logo"><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logo"></li>
           <li>
             <p>Copyright Licence - Reservation</p>
-            <p>Created by <a class="enlace" href="https://gravatar.com/cafeconalejo">Pixelcraft</a></p>
+            <p>Created by <a class="enlace p-3" href="https://gravatar.com/cafeconalejo">Pixelcraft</a></p>
           </li>
-          <li class=""><a href="#">Restaurant's Instagram</a></li> <!--Instagram del negocio-->
+          <li class=""><a class="p-3" href="#">Restaurant's Instagram</a></li> <!--Instagram del negocio-->
+          <li class="admin p-3"><a href="#" alt="Admin Access"></a></li>
         </ul>
     </footer>
 </body>

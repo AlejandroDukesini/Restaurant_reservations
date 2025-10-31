@@ -1,0 +1,48 @@
+.visionist{
+    background-color: blue;
+    border-radius:9px;
+    margin-right:7px;
+    padding:2px;
+    margin-left:10vh;
+    width:30%;
+    height:430px;
+}
+.vimage-one{
+    width:100%;
+    height:100%;
+}
+.textion{
+    margin-left:10px;
+    width:45%;
+    height:450px;
+}
+.vdesc{
+    width: auto;
+    height:auto;
+}
+.tdtitle{
+    font-size:18px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    margin-top:25px;
+    margin-bottom:25px;
+}
+form input{
+    background-color:rgba(128, 128, 128, 0.432);
+    border-bottom:1px solid rgb(231, 231, 231);
+    border-radius: 5px;
+    width:100px;
+}
+.vprize{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.vvpay{
+    transition-duration:300ms;
+}
+.vvpay:hover{
+    transition-duration:300ms;
+    background-color: red;
+    padding-bottom:5px;
+    border-radius:5px;
+}
