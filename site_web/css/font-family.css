@@ -1,4 +1,4 @@
-.mozilla-headline {
+.mozilla-headline { /*TITLES*/
   font-family: "Mozilla Headline", sans-serif;
   font-optical-sizing: auto;
   font-weight: 200;
@@ -6,7 +6,7 @@
   font-variation-settings:
     "wdth" 100;
 }
-.edu-qld-beginner-bold {
+.edu-qld-beginner-bold { /*TEXT*/
   font-family: "Edu QLD Beginner", cursive;
   font-optical-sizing: auto;
   font-weight: 700;

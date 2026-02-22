@@ -11,25 +11,11 @@ html{
 nav{
     font-size:18px;
 }
-nav a{
-    transition-duration:300ms;
-}
-nav a:hover{
-    transition-duration:300ms;
-    color:rgb(180, 158, 70);
-}
 nav img{
     background-image:none;
 }
 footer{
     font-size:15px;
-}
-footer a{
-    transition-duration:200ms;
-}
-footer a:hover{
-    transition-duration:200ms;
-    color:chocolate;
 }
 .img-logo{
     max-width:200px;

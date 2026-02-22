@@ -1,0 +1,11 @@
+.icones{
+    max-width: 50px;
+    position: absolute;
+}
+.enlace a{
+    color:white;
+}
+.enlace a:hover{
+    color:chocolate;
+    transition-duration: 200ms;
+}
