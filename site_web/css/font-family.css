@@ -6,9 +6,9 @@
   font-variation-settings:
     "wdth" 100;
 }
-.edu-qld-beginner-bold { /*TEXT*/
-  font-family: "Edu QLD Beginner", cursive;
+.cormorant-garamond-s {
+  font-family: "Cormorant Garamond", serif;
   font-optical-sizing: auto;
-  font-weight: 700;
+  font-weight: 300;
   font-style: normal;
 }

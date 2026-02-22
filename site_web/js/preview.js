@@ -40,6 +40,9 @@ function abrirPreview(mesa) {
 
       panel.classList.remove("translate-x-full");
 
+      overlay.classList.remove("opacity-0", "pointer-events-none");
+      overlay.classList.add("opacity-100");
+
       layout.style.transform = `translate(${moveX}, ${moveY})`;
 
     });
@@ -48,9 +51,11 @@ function cerrarPreview() {
 
   panel.classList.add("translate-x-full");
 
+  overlay.classList.add("opacity-0", "pointer-events-none");
+  overlay.classList.remove("opacity-100");
+
   document.querySelectorAll(".layout")
     .forEach(l => l.style.transform = "");
-
 }
 cerrarBtn.addEventListener("click", cerrarPreview);
 // Cerrar al hacer clic fuera

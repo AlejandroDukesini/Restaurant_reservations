@@ -7,21 +7,22 @@
     <!--FONTS-->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Edu+QLD+Beginner:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&display=swap" rel="stylesheet">
     <!--FONTS-->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@200..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
     <!--JS-->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> <!--Tailwind CDN-->
     <script src="/site_web/js/tables.js?=1.1" defer></script>
     <script src="/site_web/js/tooltip.js" defer></script>
     <script src="/site_web/js/preview.js" defer></script>
+    <script src="/site_web/js/piso.js?=1.2" defer></script>
     <script src="/site_web/js/timeout.js"></script> <!--Charger Display-->
     <!--CSS-->
     <link rel="stylesheet" href="/template/template.css"> <!--CSS Temlplate-->
     <link rel="stylesheet" href="/site_web/css/font-family.css"> <!--Fonts CSS-->
-    <link rel="stylesheet" href="/site_web/css/index-styles.css"> <!--Tooltips Floor 1 CSS-->
+    <link rel="stylesheet" href="/site_web/css/index-styles.css?=1.0"> <!--Tooltips Floor 1 CSS-->
     <link rel="stylesheet" href="/site_web/css/timeout.css"> <!--CSS timeout-->
     <title>Reserva Tu Mesa</title><link rel="shortcut icon" href="/site_web/multimedia/index/FAVICON.png" type="image/x-icon">
 </head>
@@ -35,12 +36,307 @@
         <nav class="mt-5">
             <ol class="flex justify-around items-center">
                 <li class="img-logo"><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logotipo"></li>
+                <li>
+                    <div class="fixed left-1/2 -translate-x-1/2 top-2 z-99999
+                            bg-black/70 backdrop-blur-md
+                            rounded-full px-4 py-2 flex gap-3 mozilla-headline">
+                        <button class="floor-btn text-white px-4 py-1 rounded-full bg-white/20 cursor-pointer"
+                                data-floor="1">
+                            Piso 1
+                        </button>
+
+                        <button class="floor-btn text-white px-4 py-1 rounded-full hover:bg-white/20 cursor-pointer"
+                                data-floor="2">
+                            Piso 2
+                        </button>
+
+                        <button class="floor-btn text-white px-4 py-1 rounded-full hover:bg-white/20 cursor-pointer"
+                                data-floor="3">
+                            Piso 3
+                        </button>
+                    </div>
+                </li>
                 <li class="mozilla-headline enlace"><a href="/site_web/html/f&q.html"><p>F&Q</p></a></li>
             </ol>
         </nav>
     </header>
     <section>
-        <article class="fir-floor show"> <!--FLOOR ONE-->
+        <article class="floor transition-all duration-500 overflow-hidden"
+         data-floor="1"> <!--FLOOR ONE-->
+            <ul>
+                <li class="flex justify-center items-center mt-15"><!--PAISAJE SUPERIOR-->
+                    <div class="relative tooltip-container">
+                        <img 
+                            src="/site_web/multimedia/reservation/no-hay-entrada.png"
+                            class="tooltip-image rounded-lg cursor-pointer max-w-[50px]"
+                            >
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-3
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-50 text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center"
+                            >
+                                Entrada
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                        border-l-8 border-l-transparent
+                                        border-r-8 border-r-transparent
+                                        border-t-8 border-t-black">
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="flex justify-start items-center absolute"><!--PAISAJE IZQUIERDA-->
+                    <div class="relative tooltip-container ml-[80px]">
+                        <img 
+                            src="/site_web/multimedia/reservation/escalera.png"
+                            class="tooltip-image rounded-lg cursor-pointer w-[50px]">
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-3
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-50 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
+                                Al entrar, a la izquierda están las escaleras al siguiente piso
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                        border-l-8 border-l-transparent
+                                        border-r-8 border-r-transparent
+                                        border-t-8 border-t-black">
+                                </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mozilla-headline"><!--TABLES-->
+                    <ul class="flex justify-around">
+                        <li class="z-50"> <!--MESA 1-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-uno.html"
+                                data-move-x="-10vw"
+                                data-move-y="9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 1</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 2-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-dos.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="9.5vw">
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                            class="group-hover:hidden w-24">
+
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                            class="hidden group-hover:block w-24">
+                                        <p class="text-center mt-2">Mesa 2</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 3-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-tres.html"
+                                data-move-x="-77vw"
+                                data-move-y="9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 3</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <ul class="flex justify-between px-4">
+                        <li class="z-40"> <!--MESA 4-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-cuatro.html"
+                                data-move-x="0vw"
+                                data-move-y="0vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 4</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 5-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-cinco.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="0vw">
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                            class="group-hover:hidden w-24">
+
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                            class="hidden group-hover:block w-24">
+                                        <p class="text-center mt-2">Mesa 5</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 6-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-seis.html"
+                                data-move-x="-89vw"
+                                data-move-y="0vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 6</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <ul class="flex justify-around">
+                        <li class="z-50"> <!--MESA 7-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-siete.html"
+                                data-move-x="-10vw"
+                                data-move-y="-9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 7</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 8-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-ocho.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="-9.5vw">
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                            class="group-hover:hidden w-24">
+
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                            class="hidden group-hover:block w-24">
+                                        <p class="text-center mt-2">Mesa 8</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 9-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-nueve.html"
+                                data-move-x="-77vw"
+                                data-move-y="-9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 9</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li class="flex justify-end items-center mr-20"><!--PAISAJE DERECHA-->
+                    <div class="relative tooltip-container">
+                        <img 
+                            src="/site_web/multimedia/reservation/kitchen.png"
+                            class="tooltip-image rounded-lg cursor-pointer w-[50px]">
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-3
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-50 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
+                                Al entrar a la sala, a la derecha está la cocina
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                        border-l-8 border-l-transparent
+                                        border-r-8 border-r-transparent
+                                        border-t-8 border-t-black">
+                                    </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="flex justify-center items-center mt-3"><!--PAISAJE INFERIOR-->
+                    <div class="relative tooltip-container">
+                        <img 
+                            src="/site_web/multimedia/reservation/rural.png"
+                            class="tooltip-image rounded-lg cursor-pointer w-[60px]">
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-1
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-60 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
+                                Al entrar a la sala, en frente tuyo hay un paisaje.
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                border-l-8 border-l-transparent
+                                border-r-8 border-r-transparent
+                                border-t-8 border-t-black">
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </article>
+        <article class="floor hidden"
+         data-floor="2"> <!--FLOOR TWO-->
             <ul>
                 <li class="flex justify-center items-center mt-10"><!--PAISAJE SUPERIOR-->
                     <div class="relative tooltip-container">
@@ -80,253 +376,192 @@
                         </div>
                     </div>
                 </li>
-                <li><!--TABLES-->
+                <li class="mozilla-headline"><!--TABLES-->
                     <ul class="flex justify-around">
-                        <li class=""> <!--MESA 1-->
+                        <li class="z-50"> <!--MESA 10-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaU relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-uno.html"
-                                        data-move-x="-10vw"
-                                        data-move-y="5vw">
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-uno.html"
+                                data-move-x="-10vw"
+                                data-move-y="9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
 
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
-                                        <p class="text-center mt-2">Mesa 1</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 10</p>
                                 </div>
                             </div>
                         </li>
-                        <li class=""> <!--MESA 2-->
+                        <li class="z-50"> <!--MESA 2-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaD relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-dos.html"
-                                        data-move-x="-42vw"
-                                        data-move-y="5vw">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-dos.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="9.5vw">
                                         <img 
                                             src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                            class="group-hover:hidden w-24">
 
                                         <img 
                                             src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
+                                            class="hidden group-hover:block w-24">
                                         <p class="text-center mt-2">Mesa 2</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
                                 </div>
                             </div>
                         </li>
-                        <li class=""> <!--MESA 3-->
+                        <li class="z-50"> <!--MESA 3-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaD relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-dos.html"
-                                        data-move-x="-77vw"
-                                        data-move-y="5vw">
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-tres.html"
+                                data-move-x="-77vw"
+                                data-move-y="9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
 
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
-                                        <p class="text-center mt-2">Mesa 3</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 3</p>
                                 </div>
                             </div>
                         </li>
                     </ul>
-                    <ul class="flex justify-between">
-                        <li class=""> <!--MESA -->
+                    <ul class="flex justify-between px-4">
+                        <li class="z-40"> <!--MESA 4-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa 4-->
-                                    <div 
-                                        class="mesa mesaU relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-uno.html"
-                                        data-move-x="-10vw"
-                                        data-move-y="0vw">
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-cuatro.html"
+                                data-move-x="0vw"
+                                data-move-y="0vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
 
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
-                                        <p class="text-center mt-2">Mesa 4</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 4</p>
                                 </div>
                             </div>
                         </li>
-                        <li class=""> <!--MESA 5-->
-                            <div class="layout transition-transform duration-200 :hover:bg-black">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaD relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-dos.html"
-                                        data-move-x="-42vw"
-                                        data-move-y="0vw">
+                        <li class="z-50"> <!--MESA 5-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-cinco.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="0vw">
                                         <img 
                                             src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                            class="group-hover:hidden w-24">
 
                                         <img 
                                             src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
+                                            class="hidden group-hover:block w-24">
                                         <p class="text-center mt-2">Mesa 5</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
                                 </div>
                             </div>
                         </li>
-                        <li class=""> <!--MESA 6-->
+                        <li class="z-50"> <!--MESA 6-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaD relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-dos.html"
-                                        data-move-x="-77vw"
-                                        data-move-y="0vw">
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-seis.html"
+                                data-move-x="-89vw"
+                                data-move-y="0vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
 
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
-                                        <p class="text-center mt-2">Mesa 6</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 6</p>
                                 </div>
                             </div>
                         </li>
                     </ul>
-                    
                     <ul class="flex justify-around">
-                        <li class=""> <!--MESA 7-->
+                        <li class="z-50"> <!--MESA 7-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaSI relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-uno.html"
-                                        data-move-x="-10vw"
-                                        data-move-y="5vw">
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-siete.html"
+                                data-move-x="-10vw"
+                                data-move-y="-9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
 
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
-                                        <p class="text-center mt-2">Mesa 7</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 7</p>
                                 </div>
                             </div>
                         </li>
-                        <li class=""> <!--MESA 8-->
+                        <li class="z-50"> <!--MESA 8-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaO relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-dos.html"
-                                        data-move-x="-42vw"
-                                        data-move-y="5vw">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-ocho.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="-9.5vw">
                                         <img 
                                             src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                            class="group-hover:hidden w-24">
 
                                         <img 
                                             src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
+                                            class="hidden group-hover:block w-24">
                                         <p class="text-center mt-2">Mesa 8</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
                                 </div>
                             </div>
                         </li>
-                        <li class=""> <!--MESA 9-->
+                        <li class="z-50"> <!--MESA 9-->
                             <div class="layout transition-transform duration-200">
-                                <!-- ZONA MESAS -->
-                                <div id="zonaMesas" class="duration-200">
-                                    <div class="">
-                                    <!-- Mesa -->
-                                    <div 
-                                        class="mesa mesaN relative cursor-pointer"
-                                        data-url="/site_web/html/tables/floor-one/mesa-dos.html"
-                                        data-move-x="-77vw"
-                                        data-move-y="5vw">
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
-                                            class="group-hover:hidden w-24"
-                                        >
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-nueve.html"
+                                data-move-x="-77vw"
+                                data-move-y="-9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
 
-                                        <img 
-                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
-                                            class="hidden group-hover:block w-24"
-                                        >
-                                        <p class="text-center mt-2">Mesa 9</p>
-                                    </div>
-                                    <!-- Duplica cambiando data-url -->
-                                    </div>
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 9</p>
                                 </div>
                             </div>
                         </li>
@@ -360,7 +595,260 @@
                                 opacity-0 scale-95 transition-all duration-200
                                 pointer-events-none">
                             <div class="w-50 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
-                                Al entrar a la sala, en frente tuyo hay un cuadro.
+                                Al entrar a la sala, en frente tuyo hay un paisaje.
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                border-l-8 border-l-transparent
+                                border-r-8 border-r-transparent
+                                border-t-8 border-t-black">
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </article>
+        <article class="floor hidden"
+         data-floor="3"> <!--FLOOR THREE-->
+            <ul>
+                <li class="flex justify-center items-center mt-10"><!--PAISAJE SUPERIOR-->
+                    <div class="relative tooltip-container">
+                        <img 
+                            src="/site_web/multimedia/reservation/no-hay-entrada.png"
+                            class="tooltip-image rounded-lg cursor-pointer max-w-[50px]">
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-3
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-50 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
+                                Aquí estarás cuando entres al restaurante
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                        border-l-8 border-l-transparent
+                                        border-r-8 border-r-transparent
+                                        border-t-8 border-t-black">
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="flex justify-start items-center absolute"><!--PAISAJE IZQUIERDA-->
+                    <div class="relative tooltip-container ml-[80px]">
+                        <img 
+                            src="/site_web/multimedia/reservation/escalera.png"
+                            class="tooltip-image rounded-lg cursor-pointer w-[50px]">
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-3
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-50 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
+                                Al entrar, a la izquierda están las escaleras al siguiente piso
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                        border-l-8 border-l-transparent
+                                        border-r-8 border-r-transparent
+                                        border-t-8 border-t-black">
+                                </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="mozilla-headline"><!--TABLES-->
+                    <ul class="flex justify-around">
+                        <li class="z-50"> <!--MESA 19-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-uno.html"
+                                data-move-x="-10vw"
+                                data-move-y="9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 19</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 2-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-dos.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="9.5vw">
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                            class="group-hover:hidden w-24">
+
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                            class="hidden group-hover:block w-24">
+                                        <p class="text-center mt-2">Mesa 2</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 3-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-tres.html"
+                                data-move-x="-77vw"
+                                data-move-y="9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 3</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <ul class="flex justify-between px-4">
+                        <li class="z-40"> <!--MESA 4-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-cuatro.html"
+                                data-move-x="0vw"
+                                data-move-y="0vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 4</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 5-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-cinco.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="0vw">
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                            class="group-hover:hidden w-24">
+
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                            class="hidden group-hover:block w-24">
+                                        <p class="text-center mt-2">Mesa 5</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 6-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-seis.html"
+                                data-move-x="-89vw"
+                                data-move-y="0vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 6</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <ul class="flex justify-around">
+                        <li class="z-50"> <!--MESA 7-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaU relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-siete.html"
+                                data-move-x="-10vw"
+                                data-move-y="-9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 7</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 8-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                    class="mesa mesaD relative cursor-pointer"
+                                    data-url="/site_web/html/tables/floor-one/mesa-ocho.html"
+                                    data-move-x="-42vw"
+                                    data-move-y="-9.5vw">
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                            class="group-hover:hidden w-24">
+
+                                        <img 
+                                            src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                            class="hidden group-hover:block w-24">
+                                        <p class="text-center mt-2">Mesa 8</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="z-50"> <!--MESA 9-->
+                            <div class="layout transition-transform duration-200">
+                                <!-- Mesa -->
+                                <div 
+                                class="mesa mesaD relative cursor-pointer"
+                                data-url="/site_web/html/tables/floor-one/mesa-nueve.html"
+                                data-move-x="-77vw"
+                                data-move-y="-9.5vw">
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-sin-reservar.png" 
+                                        class="group-hover:hidden w-24"
+                                    >
+
+                                    <img 
+                                        src="/site_web/multimedia/reservation/mesa-hover.png" 
+                                        class="hidden group-hover:block w-24"
+                                    >
+                                    <p class="text-center mt-2">Mesa 9</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li class="flex justify-end items-center mr-20"><!--PAISAJE DERECHA-->
+                    <div class="relative tooltip-container">
+                        <img 
+                            src="/site_web/multimedia/reservation/kitchen.png"
+                            class="tooltip-image rounded-lg cursor-pointer w-[50px]">
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-3
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-50 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
+                                Al entrar a la sala, a la derecha está la cocina
                             </div>
                             <div class="w-0 h-0 mx-auto
                                         border-l-8 border-l-transparent
@@ -370,60 +858,46 @@
                         </div>
                     </div>
                 </li>
-            </ul>
-        </article>
-        <article class="sec-floor hidden"> <!--FLOOR TWO-->
-            <ul>
-                <li class="flex justify-center items-center"><!--PAISAJE SUPERIOR--> <img class="icones" src="/site_web/multimedia/reservation/no-hay-entrada.png" alt=""> </li>
-                <li class="flex justify-start items-center"><!--PAISAJE IZQUIERDA--> <img class="icones" src="/site_web/multimedia/reservation/escalera.png" alt=""> </li>
-                <li><!--CONTENIDO-->
-                    <div>
-                        <ul class="flex justify-around">
-                            <li class=""><img src="/site_web/multimedia/reservation/mesa-sin-reservar.png" alt=""></li>
-                            <li class=""><img src="/site_web/multimedia/reservation/mesa-sin-reservar.png" alt=""></li>
-                            <li class=""><img src="/site_web/multimedia/reservation/mesa-sin-reservar.png" alt=""></li>
-                        </ul>
+                <li class="flex justify-center items-center mt-5"><!--PAISAJE INFERIOR-->
+                    <div class="relative tooltip-container">
+                        <img 
+                            src="/site_web/multimedia/reservation/rural.png"
+                            class="tooltip-image rounded-lg cursor-pointer w-[50px]">
+                        <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-3
+                                opacity-0 scale-95 transition-all duration-200
+                                pointer-events-none">
+                            <div class="w-50 bg-black text-white text-sm px-4 py-2 rounded-lg shadow-lg text-center">
+                                Al entrar a la sala, en frente tuyo hay un paisaje.
+                            </div>
+                            <div class="w-0 h-0 mx-auto
+                                border-l-8 border-l-transparent
+                                border-r-8 border-r-transparent
+                                border-t-8 border-t-black">
+                            </div>
+                        </div>
                     </div>
                 </li>
-                <li class="flex justify-end items-center"><!--PAISAJE DERECHA--> <img class="icones" src="/site_web/multimedia/reservation/rural.png" alt=""> </li>
-                <li class="flex justify-center items-center"><!--PAISAJE INFERIOR--> <img class="icones" src="/site_web/multimedia/reservation/kitchen.png" alt=""> </li>
-            </ul>
-        </article>
-        <article class="thir-floor hidden"> <!--FLOOR THREE-->
-            <ul>
-                <li class="flex justify-center items-center"><!--PAISAJE SUPERIOR--> <img class="icones" src="/site_web/multimedia/reservation/no-hay-entrada.png" alt=""> </li>
-                <li class="flex justify-start items-center"><!--PAISAJE IZQUIERDA--> <img class="icones" src="/site_web/multimedia/reservation/escalera.png" alt=""> </li>
-                <li><!--CONTENIDO-->
-                    <div>
-                        <ul class="flex justify-around">
-                            <li class=""><img src="/site_web/multimedia/reservation/mesa-sin-reservar.png" alt=""></li>
-                            <li class=""><img src="/site_web/multimedia/reservation/mesa-sin-reservar.png" alt=""></li>
-                            <li class=""><img src="/site_web/multimedia/reservation/mesa-sin-reservar.png" alt=""></li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="flex justify-end items-center"><!--PAISAJE DERECHA--> <img class="icones" src="/site_web/multimedia/reservation/rural.png" alt=""> </li>
-                <li class="flex justify-center items-center"><!--PAISAJE INFERIOR--> <img class="icones" src="/site_web/multimedia/reservation/kitchen.png" alt=""> </li>
             </ul>
         </article>
     </section>
-    <!-- PANEL DERECHO -->
-     <!-- OVERLAY -->
-    <div id="overlay"
-        class="fixed inset-0 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 z-40">
+<!-- OVERLAY -->
+<div id="overlay"
+    class="fixed w-[13vw] inset-0 bg-black/70 backdrop-blur-sm
+           opacity-0 pointer-events-none
+           transition-opacity duration-300 z-40">
+</div>
+<!-- PANEL DERECHO -->
+<div id="panelPreview"
+    class="w-[87vw] z-100 min-h-screen bg-black/70 backdrop-blur-sm
+            translate-x-full transition-transform duration-200
+            fixed right-0 top-0 p-6 overflow-y-auto">
+    <button id="cerrar"
+            class="absolute top-4 right-6 text-white text-2xl cursor-pointer">
+        ✕
+    </button>
+    <div id="contenidoPreview" class="bg-blue p-6 rounded-lg shadow-lg">
     </div>
-    <div id="panelPreview"
-        class="w-[85vw] min-h-screen bg-black/70 backdrop-blur-sm
-                translate-x-full transition-transform duration-200
-                fixed right-0 top-0 p-6 overflow-y-auto">
-        <button id="cerrar"
-                class="absolute top-4 right-6 text-white text-2xl cursor-pointer">
-            ✕
-        </button>
-        <div id="contenidoPreview" class="bg-blue p-6 rounded-lg shadow-lg">
-        </div>
-    </div>
-    <footer class="mozilla-headline mt-15 mb-5">
+    <div class="mozilla-headline mt-15 mb-5">
         <ul class="flex justify-around items-center">
           <li class="img-logo"><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logo"></li>
           <li class="enlace">
@@ -431,9 +905,20 @@
             <div>Created by <a href="https://gravatar.com/cafeconalejo">COLdex</a></div>
           </li>
           <li class="enlace"><a class="" href="#">Restaurant's Instagram</a></li> <!--Instagram del negocio-->
-          <li class="pointer">
+        </ul>
+    </div>
+</div>
+    <footer class="mozilla-headline mt-15 mb-5 relative z-[90]">
+        <ul class="flex justify-around items-center">
+            <li class="img-logo"><img src="/site_web/multimedia/index/ISOLOGO.png" alt="Logo"></li>
+            <li class="enlace">
+                <p>Copyright Licence - Reservation</p>
+                <div>Created by <a href="https://gravatar.com/cafeconalejo">COLdex</a></div>
+            </li>
+            <li class="enlace"><a class="" href="#">Restaurant's Instagram</a></li> <!--Instagram del negocio-->
+            <li class="pointer">
                 <a href="#" alt="login">
-                    <img class="mesa w-17
+                    <img class="w-17
                     hover:[content:url('/site_web/multimedia/reservation/empleado-del-mes.png')]"
                     src="/site_web/multimedia/reservation/empleado-del-mes-we.png">
                 </a>

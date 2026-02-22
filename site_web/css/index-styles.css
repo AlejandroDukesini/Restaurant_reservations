@@ -9,3 +9,19 @@
     color:chocolate;
     transition-duration: 200ms;
 }
+.floor-transition-out {
+  filter: blur(8px);
+  opacity: 0.3;
+  transform: scale(0.98);
+  backdrop-filter: blur(12px);
+}
+
+.floor-transition-in {
+  filter: blur(0);
+  opacity: 1;
+  transform: scale(1);
+  backdrop-filter: blur(12px);
+}
+#imagenQueQuieroCambiar{
+  background-color: white;
+}
