@@ -1,6 +1,4 @@
 const buttons = document.querySelectorAll(".floor-btn");
-const floors = document.querySelectorAll(".floor");
-
 
 buttons.forEach(btn => {
 
@@ -11,30 +9,31 @@ buttons.forEach(btn => {
     const current = document.querySelector(".floor-active");
     const next = document.querySelector(`.floor[data-floor="${floorNumber}"]`);
 
-    if (current === next) return;
+    if (!next || current === next) return;
 
-    // 1️⃣ Desenfocar y desvanecer actual
-    current.classList.add("opacity-0", "blur-sm", "scale-95");
+    if (current) {
+      current.classList.add("opacity-0", "blur-sm", "scale-95");
 
-    setTimeout(() => {
-      current.classList.add("hidden");
-      current.classList.remove("floor-active");
+      setTimeout(() => {
+        current.classList.add("hidden");
+        current.classList.remove("floor-active");
 
-      // 2️⃣ Mostrar siguiente
-      next.classList.remove("hidden");
+        showNext(next);
+      }, 300);
+    } else {
+      showNext(next);
+    }
 
-      // Forzar reflow pequeño
-      void next.offsetWidth;
-
-      next.classList.add("floor-active");
-      next.classList.remove("opacity-0", "blur-sm", "scale-95");
-
-    }, 300);
-
-    // Botones
     buttons.forEach(b => b.classList.remove("bg-white/20"));
     btn.classList.add("bg-white/20");
 
   });
 
 });
+
+function showNext(next) {
+  next.classList.remove("hidden");
+  void next.offsetWidth; // fuerza reflow
+  next.classList.add("floor-active");
+  next.classList.remove("opacity-0", "blur-sm", "scale-95");
+}

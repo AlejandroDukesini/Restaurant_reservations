@@ -17,7 +17,7 @@
     <script src="/site_web/js/tables.js?=1.1" defer></script>
     <script src="/site_web/js/tooltip.js" defer></script>
     <script src="/site_web/js/preview.js" defer></script>
-    <script src="/site_web/js/piso.js?=1.2" defer></script>
+    <script src="/site_web/js/piso.js?=1.3" defer></script>
     <script src="/site_web/js/timeout.js"></script> <!--Charger Display-->
     <!--CSS-->
     <link rel="stylesheet" href="/template/template.css"> <!--CSS Temlplate-->
@@ -26,12 +26,12 @@
     <link rel="stylesheet" href="/site_web/css/timeout.css"> <!--CSS timeout-->
     <title>Reserva Tu Mesa</title><link rel="shortcut icon" href="/site_web/multimedia/index/FAVICON.png" type="image/x-icon">
 </head>
-<!-- Loader -->
-<div id="loader">
-  <div class="spinner"></div>
-  <p>Cargando Interfaz</p>
-</div>
 <body class="overflow-x-hidden">
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Cargando Interfaz</p>
+    </div>
     <header>
         <nav class="mt-5">
             <ol class="flex justify-around items-center">
@@ -61,7 +61,7 @@
         </nav>
     </header>
     <section>
-        <article class="floor transition-all duration-500 overflow-hidden"
+        <article class="floor floor-active transition-all duration-500 overflow-hidden"
          data-floor="1"> <!--FLOOR ONE-->
             <ul>
                 <li class="flex justify-center items-center mt-15"><!--PAISAJE SUPERIOR-->
@@ -335,7 +335,7 @@
                 </li>
             </ul>
         </article>
-        <article class="floor hidden"
+        <article class="floor hidden transition-all duration-500 overflow-hidden"
          data-floor="2"> <!--FLOOR TWO-->
             <ul>
                 <li class="flex justify-center items-center mt-10"><!--PAISAJE SUPERIOR-->
@@ -607,7 +607,7 @@
                 </li>
             </ul>
         </article>
-        <article class="floor hidden"
+        <article class="floor hidden transition-all duration-500 overflow-hidden"
          data-floor="3"> <!--FLOOR THREE-->
             <ul>
                 <li class="flex justify-center items-center mt-10"><!--PAISAJE SUPERIOR-->
