@@ -35,7 +35,7 @@ class JwtTokenProvider(
     }
     
     fun getUserIdFromToken(token: String): Long {
-        val claims = Jwts.parserBuilder()
+        val claims = Jwts.parser()
             .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
@@ -46,7 +46,7 @@ class JwtTokenProvider(
     
     fun validateToken(token: String): Boolean {
         try {
-            Jwts.parserBuilder()
+            Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
@@ -66,7 +66,7 @@ class JwtTokenProvider(
     }
     
     fun getRoleFromToken(token: String): String {
-        val claims = Jwts.parserBuilder()
+        val claims = Jwts.parser()
             .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
@@ -76,7 +76,7 @@ class JwtTokenProvider(
     }
     
     fun getRestaurantIdFromToken(token: String): Long? {
-        val claims = Jwts.parserBuilder()
+        val claims = Jwts.parser()
             .setSigningKey(key)
             .build()
             .parseClaimsJws(token)

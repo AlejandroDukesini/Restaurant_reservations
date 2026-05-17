@@ -33,7 +33,7 @@ class OrderService(
         
         val orderItems = request.items.map { itemRequest ->
             OrderItem(
-                order = Order(), // Will be set after order is saved
+                order = null, // Will be set after order is saved
                 itemName = itemRequest.itemName,
                 quantity = itemRequest.quantity,
                 price = itemRequest.price,

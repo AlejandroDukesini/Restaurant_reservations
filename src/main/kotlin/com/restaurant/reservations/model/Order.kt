@@ -12,7 +12,7 @@ data class Order(
     
     @ManyToOne
     @JoinColumn(name = "table_id", nullable = false)
-    val table: Table,
+    val table: RestaurantTable,
     
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)

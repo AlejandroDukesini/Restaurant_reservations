@@ -10,8 +10,8 @@ data class OrderItem(
     val id: Long? = null,
     
     @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
-    val order: Order,
+    @JoinColumn(name = "order_id")
+    val order: Order? = null,
     
     @Column(nullable = false)
     val itemName: String,

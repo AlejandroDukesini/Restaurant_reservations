@@ -184,18 +184,18 @@ class WebsiteGeneratorService(
             }
             
             function loadTables(floor) {
-                fetch(`${{API_URL}}/public/restaurants/${{RESTAURANT_SLUG}}/tables?floor=${{floor}}`)
+                fetch(API_URL + '/public/restaurants/' + RESTAURANT_SLUG + '/tables?floor=' + floor)
                     .then(response => response.json())
                     .then(tables => {
                         const container = document.getElementById('tables-container');
-                        container.innerHTML = tables.map(table => `
-                            <div class="table-card" data-table-id="${{table.id}}" onclick="selectTable(${{table.id}}, ${{table.tableNumber}}, ${{table.price}}, ${{table.capacity}})">
-                                <h3 class="text-lg font-bold">Mesa ${{table.tableNumber}}</h3>
-                                <p>Piso: ${{table.floor}}</p>
-                                <p>Capacidad: ${{table.capacity}} personas</p>
-                                <p class="text-red-600 font-bold">${{table.price.toFixed(2)}} COP</p>
-                            </div>
-                        `).join('');
+                        container.innerHTML = tables.map(table => 
+                            '<div class="table-card" data-table-id="' + table.id + '" onclick="selectTable(' + table.id + ', ' + table.tableNumber + ', ' + table.price + ', ' + table.capacity + ')">' +
+                            '<h3 class="text-lg font-bold">Mesa ' + table.tableNumber + '</h3>' +
+                            '<p>Piso: ' + table.floor + '</p>' +
+                            '<p>Capacidad: ' + table.capacity + ' personas</p>' +
+                            '<p class="text-red-600 font-bold">' + table.price.toFixed(2) + ' COP</p>' +
+                            '</div>'
+                        ).join('');
                     })
                     .catch(error => console.error('Error loading tables:', error));
             }
@@ -232,11 +232,11 @@ class WebsiteGeneratorService(
                         specialRequests: document.getElementById('specialRequests').value || null
                     };
                     
-                    fetch(`${{API_URL}}/customer/reservations`, {
+                    fetch(API_URL + '/customer/reservations', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${{token}}`
+                            'Authorization': 'Bearer ' + token
                         },
                         body: JSON.stringify(reservationData)
                     })

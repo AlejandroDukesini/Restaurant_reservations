@@ -21,7 +21,7 @@ class CustomUserDetailsService(
         return UserPrincipal(
             id = user.id!!,
             email = user.email,
-            password = user.password,
+            privatePassword = user.password,
             role = user.role,
             restaurantId = user.restaurant?.id
         )
@@ -35,7 +35,7 @@ class CustomUserDetailsService(
         return UserPrincipal(
             id = user.id!!,
             email = user.email,
-            password = user.password,
+            privatePassword = user.password,
             role = user.role,
             restaurantId = user.restaurant?.id
         )

@@ -2,7 +2,7 @@ package com.restaurant.reservations.service
 
 import com.restaurant.reservations.dto.TableRequest
 import com.restaurant.reservations.dto.TableResponse
-import com.restaurant.reservations.model.Table
+import com.restaurant.reservations.model.RestaurantTable
 import com.restaurant.reservations.repository.RestaurantRepository
 import com.restaurant.reservations.repository.TableRepository
 import org.springframework.stereotype.Service
@@ -23,7 +23,7 @@ class TableService(
         val restaurant = restaurantRepository.findById(restaurantId)
             .orElseThrow { IllegalArgumentException("Restaurant not found") }
         
-        val table = Table(
+        val table = RestaurantTable(
             tableNumber = request.tableNumber,
             floor = request.floor,
             capacity = request.capacity,
@@ -84,7 +84,7 @@ class TableService(
         tableRepository.save(deactivatedTable)
     }
     
-    private fun toResponse(table: Table): TableResponse {
+    private fun toResponse(table: RestaurantTable): TableResponse {
         return TableResponse(
             id = table.id!!,
             tableNumber = table.tableNumber,

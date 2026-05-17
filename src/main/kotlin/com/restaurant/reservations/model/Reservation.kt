@@ -12,7 +12,7 @@ data class Reservation(
     
     @ManyToOne
     @JoinColumn(name = "table_id", nullable = false)
-    val table: Table,
+    val table: RestaurantTable,
     
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)

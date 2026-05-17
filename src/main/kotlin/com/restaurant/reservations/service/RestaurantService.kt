@@ -7,8 +7,8 @@ import com.restaurant.reservations.model.Role
 import com.restaurant.reservations.model.User
 import com.restaurant.reservations.repository.RestaurantRepository
 import com.restaurant.reservations.repository.UserRepository
-import com.restaurant.reservations.security.PasswordEncoder
 import com.restaurant.reservations.service.WebsiteGeneratorService
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -54,8 +54,8 @@ class RestaurantService(
         userRepository.save(admin)
         
         val websiteUrl = websiteGeneratorService.generateWebsite(savedRestaurant)
-        savedRestaurant.websiteUrl = websiteUrl
-        restaurantRepository.save(savedRestaurant)
+        val updatedRestaurant = savedRestaurant.copy(websiteUrl = websiteUrl)
+        restaurantRepository.save(updatedRestaurant)
         
         return toResponse(savedRestaurant)
     }

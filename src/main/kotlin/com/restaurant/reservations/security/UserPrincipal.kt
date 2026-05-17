@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails
 data class UserPrincipal(
     val id: Long,
     val email: String,
-    val password: String,
+    private val privatePassword: String,
     val role: Role,
     val restaurantId: Long?
 ) : UserDetails {
@@ -17,7 +17,7 @@ data class UserPrincipal(
         return listOf(SimpleGrantedAuthority("ROLE_${role.name}"))
     }
     
-    override fun getPassword(): String = password
+    override fun getPassword(): String = privatePassword
     
     override fun getUsername(): String = email
     
