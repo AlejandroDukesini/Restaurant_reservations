@@ -3,6 +3,7 @@ package com.restaurant.reservations.controller
 import com.restaurant.reservations.dto.TableRequest
 import com.restaurant.reservations.dto.TableResponse
 import com.restaurant.reservations.service.TableService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -15,7 +16,7 @@ class TableController(
     
     @PostMapping("/employee/tables")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    fun createTable(@RequestBody request: TableRequest): ResponseEntity<TableResponse> {
+    fun createTable(@Valid @RequestBody request: TableRequest): ResponseEntity<TableResponse> {
         val table = tableService.createTable(request)
         return ResponseEntity.ok(table)
     }
@@ -44,7 +45,7 @@ class TableController(
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     fun updateTable(
         @PathVariable id: Long,
-        @RequestBody request: TableRequest
+        @Valid @RequestBody request: TableRequest
     ): ResponseEntity<TableResponse> {
         val table = tableService.updateTable(id, request)
         return ResponseEntity.ok(table)

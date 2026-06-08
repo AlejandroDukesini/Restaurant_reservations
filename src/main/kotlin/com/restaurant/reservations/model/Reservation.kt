@@ -4,7 +4,12 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "reservations")
+@Table(
+    name = "reservations",
+    indexes = [
+        Index(name = "idx_reservation_table_date_status", columnList = "table_id,reservation_date,status")
+    ]
+)
 data class Reservation(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +25,9 @@ data class Reservation(
     
     @Column(nullable = false)
     val reservationDate: LocalDateTime,
+
+    @Column(nullable = false)
+    val reservationEnd: LocalDateTime = reservationDate.plusHours(2),
     
     @Column(nullable = false)
     val numberOfGuests: Int,

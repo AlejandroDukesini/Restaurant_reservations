@@ -48,6 +48,9 @@ data class Restaurant(
     
     @OneToMany(mappedBy = "restaurant", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     val tables: List<RestaurantTable> = emptyList(),
+
+    @OneToMany(mappedBy = "restaurant", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    val zones: List<Zone> = emptyList(),
     
     @OneToMany(mappedBy = "restaurant", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     val users: List<User> = emptyList()
