@@ -5,6 +5,7 @@ import com.restaurant.reservations.dto.TableResponse
 import com.restaurant.reservations.model.RestaurantTable
 import com.restaurant.reservations.repository.RestaurantRepository
 import com.restaurant.reservations.repository.TableRepository
+import com.restaurant.reservations.repository.ZoneRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 class TableService(
     private val tableRepository: TableRepository,
     private val restaurantRepository: RestaurantRepository,
+    private val zoneRepository: ZoneRepository,
     private val authService: AuthService
 ) {
     
@@ -22,12 +24,20 @@ class TableService(
         
         val restaurant = restaurantRepository.findById(restaurantId)
             .orElseThrow { IllegalArgumentException("Restaurant not found") }
+
+        val zone = request.zoneId?.let {
+            zoneRepository.findByIdAndRestaurantId(it, restaurantId)
+                .orElseThrow { IllegalArgumentException("Zone not found for restaurant") }
+        }
         
         val table = RestaurantTable(
             tableNumber = request.tableNumber,
             floor = request.floor,
             capacity = request.capacity,
             price = request.price,
+            zone = zone,
+            gridX = request.gridX,
+            gridY = request.gridY,
             restaurant = restaurant
         )
         
@@ -59,12 +69,20 @@ class TableService(
         if (table.restaurant.id != restaurantId) {
             throw IllegalArgumentException("Unauthorized access to table")
         }
+
+        val zone = request.zoneId?.let {
+            zoneRepository.findByIdAndRestaurantId(it, restaurantId!!)
+                .orElseThrow { IllegalArgumentException("Zone not found for restaurant") }
+        }
         
         val updatedTable = table.copy(
             tableNumber = request.tableNumber,
             floor = request.floor,
             capacity = request.capacity,
-            price = request.price
+            price = request.price,
+            zone = zone,
+            gridX = request.gridX,
+            gridY = request.gridY
         )
         
         return toResponse(tableRepository.save(updatedTable))
@@ -92,7 +110,12 @@ class TableService(
             capacity = table.capacity,
             price = table.price,
             restaurantId = table.restaurant.id!!,
-            active = table.active
+            active = table.active,
+            zoneId = table.zone?.id,
+            zoneName = table.zone?.name,
+            gridX = table.gridX,
+            gridY = table.gridY,
+            status = table.status.name
         )
     }
 }

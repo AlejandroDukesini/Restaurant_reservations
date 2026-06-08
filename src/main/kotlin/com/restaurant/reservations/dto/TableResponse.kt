@@ -7,5 +7,10 @@ data class TableResponse(
     val capacity: Int,
     val price: Double,
     val restaurantId: Long,
-    val active: Boolean
+    val active: Boolean,
+    val zoneId: Long? = null,
+    val zoneName: String? = null,
+    val gridX: Int = 1,
+    val gridY: Int = 1,
+    val status: String = "AVAILABLE"
 )
