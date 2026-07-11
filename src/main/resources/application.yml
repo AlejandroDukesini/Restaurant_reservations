@@ -22,10 +22,12 @@ spring:
       write-dates-as-timestamps: false
 
 server:
-  port: 8080
+  # 8081 para evitar el choque con Apache/XAMPP (que suele usar el 8080).
+  port: 8081
 
 jwt:
-  secret: your-secret-key-for-jwt-token-generation-minimum-256-bits
+  # HS512 requiere una clave de al menos 512 bits (>= 64 bytes).
+  secret: maison-noir-jwt-signing-secret-key-hs512-minimum-512-bits-must-be-64plus-bytes-2026
   expiration: 86400000
 
 app:

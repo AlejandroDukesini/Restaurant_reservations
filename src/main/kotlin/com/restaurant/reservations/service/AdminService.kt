@@ -45,9 +45,11 @@ class AdminService(
                     items = order.items.map { item ->
                         com.restaurant.reservations.dto.OrderItemResponse(
                             id = item.id!!,
+                            menuItemId = item.menuItem?.id,
                             itemName = item.itemName,
                             quantity = item.quantity,
                             price = item.price,
+                            status = item.status.name,
                             notes = item.notes
                         )
                     },
@@ -71,9 +73,11 @@ class AdminService(
                     items = order.items.map { item ->
                         com.restaurant.reservations.dto.OrderItemResponse(
                             id = item.id!!,
+                            menuItemId = item.menuItem?.id,
                             itemName = item.itemName,
                             quantity = item.quantity,
                             price = item.price,
+                            status = item.status.name,
                             notes = item.notes
                         )
                     },

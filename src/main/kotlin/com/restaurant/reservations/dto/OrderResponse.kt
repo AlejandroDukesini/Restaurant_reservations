@@ -17,8 +17,10 @@ data class OrderResponse(
 
 data class OrderItemResponse(
     val id: Long,
+    val menuItemId: Long?,
     val itemName: String,
     val quantity: Int,
     val price: Double,
+    val status: String,
     val notes: String?
 )

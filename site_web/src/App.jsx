@@ -1,72 +1,48 @@
-import Footer from "./components/Footer";
-import Navbar from "./components/Navbar";
-import SelectionPanel from "./components/SelectionPanel";
-import TableGrid from "./components/TableGrid";
-import { useTableMap } from "./hooks/useTableMap";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { homePathForRole, useAuth } from "./auth/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
+import FloorPage from "./pages/FloorPage";
+import KitchenPage from "./pages/KitchenPage";
+import AdminPage from "./pages/AdminPage";
+
+function RootRedirect() {
+  const { isAuthenticated, role } = useAuth();
+  return <Navigate to={isAuthenticated ? homePathForRole(role) : "/login"} replace />;
+}
 
 export default function App() {
-  const {
-    date,
-    time,
-    zones,
-    selectedTableId,
-    selectedTable,
-    form,
-    status,
-    isLoading,
-    isDemoMode,
-    setDate,
-    setTime,
-    setSelectedTableId,
-    setForm,
-    refreshMap,
-    confirmReservation
-  } = useTableMap();
-
   return (
-    <main className="min-h-screen bg-carbon text-zinc-100">
-      <Navbar />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<RootRedirect />} />
 
-      <section id="mesas" className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[1fr_380px]">
-        <TableGrid
-          zones={zones}
-          date={date}
-          time={time}
-          selectedTableId={selectedTableId}
-          isLoading={isLoading}
-          isDemoMode={isDemoMode}
-          onDateChange={(value) => {
-            setDate(value);
-            refreshMap(value, time);
-          }}
-          onTimeChange={(value) => {
-            setTime(value);
-            refreshMap(date, value);
-          }}
-          onSelectTable={setSelectedTableId}
-        />
+      <Route
+        path="/piso"
+        element={
+          <ProtectedRoute roles={["EMPLOYEE", "ADMIN"]}>
+            <FloorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cocina"
+        element={
+          <ProtectedRoute roles={["COOK", "ADMIN"]}>
+            <KitchenPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute roles={["ADMIN"]}>
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
 
-        <SelectionPanel
-          selectedTable={selectedTable}
-          date={date}
-          time={time}
-          form={form}
-          status={status}
-          isLoading={isLoading}
-          onDateChange={(value) => {
-            setDate(value);
-            refreshMap(value, time);
-          }}
-          onTimeChange={(value) => {
-            setTime(value);
-            refreshMap(date, value);
-          }}
-          onFormChange={(patch) => setForm((current) => ({ ...current, ...patch }))}
-          onSubmit={confirmReservation}
-        />
-      </section>
-
-      <Footer />
-    </main>
+      <Route path="*" element={<RootRedirect />} />
+    </Routes>
   );
 }

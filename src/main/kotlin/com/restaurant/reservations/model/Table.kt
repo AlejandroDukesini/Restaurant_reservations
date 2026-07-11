@@ -11,7 +11,10 @@ data class RestaurantTable(
     
     @Column(nullable = false)
     val tableNumber: Int,
-    
+
+    @Column
+    val name: String? = null,
+
     @Column(nullable = false)
     val floor: Int,
     

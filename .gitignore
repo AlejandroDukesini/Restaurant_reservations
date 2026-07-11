@@ -36,3 +36,10 @@ generated-websites/
 
 # Application
 application-local.yml
+
+# Node / frontend (site_web)
+node_modules/
+dist/
+.corepack/
+.pnpm-store/
+pnpm-debug.log*
