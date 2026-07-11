@@ -32,6 +32,7 @@ class TableService(
         
         val table = RestaurantTable(
             tableNumber = request.tableNumber,
+            name = request.name,
             floor = request.floor,
             capacity = request.capacity,
             price = request.price,
@@ -47,6 +48,13 @@ class TableService(
     fun getTablesByRestaurant(restaurantId: Long): List<TableResponse> {
         return tableRepository.findByRestaurantIdAndActiveTrue(restaurantId)
             .map { toResponse(it) }
+    }
+
+    fun getMyTables(floor: Int?): List<TableResponse> {
+        val restaurantId = authService.getCurrentUserRestaurantId()
+            ?: throw IllegalArgumentException("User not associated with a restaurant")
+        return if (floor != null) getTablesByFloor(restaurantId, floor)
+        else getTablesByRestaurant(restaurantId)
     }
     
     fun getTablesByFloor(restaurantId: Long, floor: Int): List<TableResponse> {
@@ -77,6 +85,7 @@ class TableService(
         
         val updatedTable = table.copy(
             tableNumber = request.tableNumber,
+            name = request.name,
             floor = request.floor,
             capacity = request.capacity,
             price = request.price,
@@ -106,6 +115,7 @@ class TableService(
         return TableResponse(
             id = table.id!!,
             tableNumber = table.tableNumber,
+            name = table.name,
             floor = table.floor,
             capacity = table.capacity,
             price = table.price,

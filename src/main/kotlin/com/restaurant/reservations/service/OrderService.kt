@@ -5,6 +5,7 @@ import com.restaurant.reservations.dto.OrderResponse
 import com.restaurant.reservations.model.Order
 import com.restaurant.reservations.model.OrderItem
 import com.restaurant.reservations.model.OrderStatus
+import com.restaurant.reservations.repository.MenuItemRepository
 import com.restaurant.reservations.repository.OrderItemRepository
 import com.restaurant.reservations.repository.OrderRepository
 import com.restaurant.reservations.repository.TableRepository
@@ -18,29 +19,36 @@ class OrderService(
     private val orderItemRepository: OrderItemRepository,
     private val tableRepository: TableRepository,
     private val userRepository: UserRepository,
+    private val menuItemRepository: MenuItemRepository,
     private val authService: AuthService
 ) {
-    
+
     @Transactional
     fun createOrder(request: OrderRequest): OrderResponse {
         val employeeId = authService.getCurrentUserId()
-        
+
         val table = tableRepository.findById(request.tableId)
             .orElseThrow { IllegalArgumentException("Table not found") }
-        
+
         val employee = userRepository.findById(employeeId)
             .orElseThrow { IllegalArgumentException("Employee not found") }
-        
+
+        require(request.items.isNotEmpty()) { "Order must have at least one item" }
+
+        // Los platos son de menú (no personalizables): nombre y precio se toman del MenuItem.
         val orderItems = request.items.map { itemRequest ->
+            val menuItem = menuItemRepository.findById(itemRequest.menuItemId)
+                .orElseThrow { IllegalArgumentException("Menu item not found: ${itemRequest.menuItemId}") }
             OrderItem(
                 order = null, // Will be set after order is saved
-                itemName = itemRequest.itemName,
+                menuItem = menuItem,
+                itemName = menuItem.name,
                 quantity = itemRequest.quantity,
-                price = itemRequest.price,
+                price = menuItem.price,
                 notes = itemRequest.notes
             )
         }
-        
+
         val totalAmount = orderItems.sumOf { it.price * it.quantity }
         
         val order = Order(
@@ -118,9 +126,11 @@ class OrderService(
             items = order.items.map { item ->
                 com.restaurant.reservations.dto.OrderItemResponse(
                     id = item.id!!,
+                    menuItemId = item.menuItem?.id,
                     itemName = item.itemName,
                     quantity = item.quantity,
                     price = item.price,
+                    status = item.status.name,
                     notes = item.notes
                 )
             },

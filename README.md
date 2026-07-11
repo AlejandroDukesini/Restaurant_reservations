@@ -1,219 +1,175 @@
-![Img of the principal menu's project while it's starting](site-web.png)
+![Vista del proyecto en ejecución](site-web.png)
 
-# Restaurant Reservations Platform 1.0.0v
+# Maison Noir · Sistema de Operación de Restaurante
 
-A multi-tenant restaurant reservation system built with Kotlin and Spring Boot, similar to Rappi but with automatic website generation for each restaurant.
+Aplicación full‑stack para operar un restaurante: los **meseros** reportan por mesa qué platos se
+piden, los **cocineros** ven la cola de cocina con la receta fija de cada plato (proteína,
+condimentos, ingredientes) y marcan cada plato como listo, y el **administrador** gestiona mesas,
+personal, menú y pedidos.
 
-## Features
+- **Backend:** Kotlin + Spring Boot 3.2, JPA/Hibernate, PostgreSQL, seguridad JWT (RBAC).
+- **Frontend:** React 19 + Vite + Tailwind CSS + React Router.
 
-### Multi-Restaurant Platform
+---
 
-- Any restaurant can register and get their own reservation system
-- Automatic website generation for each restaurant upon registration
-- Customizable tables, chairs, and floors configuration
+## Roles
 
-### Three User Roles
+| Rol                         | Ruta      | Qué puede hacer                                                                                                                                                   |
+| --------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Administrador** (`ADMIN`) | `/admin`  | CRUD de mesas (incluye mover por coordenadas), personal (meseros y cocineros), menú con receta, y resumen de pedidos.                                             |
+| **Mesero** (`EMPLOYEE`)     | `/piso`   | Ver el mapa de mesas y tomar pedidos por mesa eligiendo platos del menú; enviarlos a cocina.                                                                      |
+| **Cocinero** (`COOK`)       | `/cocina` | Ver la cola de platos pendientes con su receta y marcar cada plato como _Preparando_ / _Listo_. Al quedar todos los platos listos, el pedido pasa a _Completado_. |
 
-#### Administrator
+Los platos del menú **no son personalizables**: su receta (proteína, condimentos, ingredientes,
+notas de preparación) se define una vez y el cocinero la consulta desde la cola.
 
-- Full CRUD on all reservations and active orders
-- Restaurant registration and management
-- User management within the restaurant
+---
 
-#### Employee
+## Requisitos previos
 
-- CRUD on orders
-- Table management
-- Order status updates
+- **JDK 21** (obligatorio — Gradle 8.6 no funciona con JDK 24/25).
+- **PostgreSQL 14+** corriendo en `localhost:5432`.
+- **Node.js 18+** (incluye Corepack para usar `pnpm` sin instalarlo aparte).
 
-#### Customer
+---
 
-- CRUD on tables (view)
-- Create reservations with price, quantity of guests
-- View order history
+## Descarga e instalación
 
-### Two Modes
-
-- **Website Mode**: Customers can reserve tables through the restaurant's generated website
-- **App Mode (Employee)**: Employees can take orders for each table and chair
-
-## Tech Stack
-
-- **Language**: Kotlin
-- **Framework**: Spring Boot 3.2.0
-- **Database**: PostgreSQL
-- **Security**: JWT Authentication
-- **Build Tool**: Gradle with Kotlin DSL
-
-## Project Structure
-
-```
-reservas/
-├── src/
-│   └── main/
-│       ├── kotlin/com/restaurant/reservations/
-│       │   ├── controller/      # REST API controllers
-│       │   ├── dto/            # Data Transfer Objects
-│       │   ├── model/          # Domain entities
-│       │   ├── repository/     # JPA repositories
-│       │   ├── security/       # JWT and security configuration
-│       │   └── service/        # Business logic
-│       └── resources/
-│           └── application.yml # Application configuration
-├── build.gradle.kts            # Gradle build configuration
-├── settings.gradle.kts         # Gradle settings
-└── README.md
+```bash
+# 1. Clonar el repositorio
+git clone <URL-del-repositorio>
+cd reservas
 ```
 
-## Setup Instructions
+### 2. Base de datos
 
-### Prerequisites
-
-- Java 17 or higher
-- PostgreSQL database
-- Gradle 8.0 or higher
-
-### Database Setup
-
-1. Create a PostgreSQL database:
+Crea la base de datos en PostgreSQL:
 
 ```sql
 CREATE DATABASE restaurant_reservations;
 ```
 
-2. Update database credentials in `src/main/resources/application.yml`:
+Si tu usuario/contraseña no son `postgres` / `postgres`, edítalos en
+`src/main/resources/application.yml`:
 
 ```yaml
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/restaurant_reservations
-    username: your_username
-    password: your_password
+    username: postgres
+    password: postgres
 ```
 
-### Build and Run
+El esquema se crea solo (`ddl-auto: update`) y al primer arranque se **siembran datos de demo**
+(un restaurante, mesas, menú con recetas y usuarios).
 
-1. Build the project:
+### 3. Backend (Kotlin / Spring Boot)
+
+`gradle.properties` apunta a un JDK 21 en `C:/Program Files/Java/jdk-21`. Si tu JDK 21 está en otra
+ruta, ajústala ahí (o borra esa línea y usa `JAVA_HOME` apuntando a un JDK 21).
+
+```powershell
+# Windows (PowerShell) — el prefijo .\ es obligatorio
+.\gradlew.bat bootRun
+```
+
+El backend queda en `http://localhost:8081`.
+
+> Se usa el **8081** (y no el 8080) para no chocar con Apache de XAMPP/WAMP, que suele ocupar el
+> 8080. Así puedes dejar XAMPP encendido. Si el 8081 también estuviera ocupado, cámbialo en
+> `src/main/resources/application.yml` (`server.port`) y en el proxy de `site_web/vite.config.js`.
+
+### 4. Frontend (React / Vite)
 
 ```bash
-./gradlew build
+cd site_web
+corepack pnpm install
+corepack pnpm dev
 ```
 
-2. Run the application:
+Abre `http://localhost:5173`. El servidor de Vite hace _proxy_ de `/api` hacia el backend en
+`http://localhost:8081`.
 
-```bash
-./gradlew bootRun
+---
+
+## Cuentas de demostración
+
+Todas usan la contraseña **`password123`**:
+
+| Rol           | Correo                                              |
+| ------------- | --------------------------------------------------- |
+| Administrador | `admin@maisonnoir.com`                              |
+| Mesero        | `mesero1@maisonnoir.com` · `mesero2@maisonnoir.com` |
+| Cocinero      | `cocina1@maisonnoir.com` · `cocina2@maisonnoir.com` |
+
+En la pantalla de login hay botones para rellenar estas credenciales rápidamente.
+
+---
+
+## Solución de problemas
+
+- **`Port 8081 was already in use`**: cambia `server.port` en `src/main/resources/application.yml`
+  a un puerto libre y actualiza el destino del proxy en `site_web/vite.config.js` para que coincida.
+- **`Java home ... is invalid` / la build falla al arrancar**: falta JDK 21 o la ruta de
+  `gradle.properties` no coincide con tu instalación. Corrige `org.gradle.java.home`.
+- **`violates check constraint "users_role_check"`**: tu base de datos viene de una versión anterior
+  sin el rol `COOK`. Elimina el constraint obsoleto (una sola vez):
+  `ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;`
+  o recrea la base de datos vacía.
+
+---
+
+## Estructura del proyecto
+
+```
+reservas/
+├── src/main/kotlin/com/restaurant/reservations/
+│   ├── controller/   # Controladores REST (auth, tables, orders, cook, menu, staff, admin)
+│   ├── dto/          # Objetos de transferencia
+│   ├── model/        # Entidades (User, Restaurant, Zone, Table, Order, OrderItem, MenuItem)
+│   ├── repository/   # Repositorios JPA
+│   ├── security/     # JWT + configuración de seguridad
+│   ├── service/      # Lógica de negocio
+│   └── config/       # DataSeeder (datos de demo), CORS
+├── src/main/resources/application.yml
+├── site_web/         # Frontend React (Vite + Tailwind)
+│   └── src/
+│       ├── api/          # Cliente HTTP y módulos por recurso
+│       ├── auth/         # Contexto de autenticación (JWT)
+│       ├── components/   # UI reutilizable y paneles de admin
+│       ├── pages/        # Login, Piso, Cocina, Administración
+│       └── utils/
+├── build.gradle.kts
+├── gradle.properties     # JDK usado por Gradle (JDK 21)
+└── README.md
 ```
 
-The application will start on `http://localhost:8080`
+---
 
-## API Endpoints
+## Principales endpoints de la API
 
-### Authentication
+| Método              | Ruta                                             | Rol            | Descripción                              |
+| ------------------- | ------------------------------------------------ | -------------- | ---------------------------------------- |
+| POST                | `/api/auth/login`                                | público        | Iniciar sesión, devuelve el JWT          |
+| GET                 | `/api/staff/tables`                              | staff          | Mesas del restaurante                    |
+| GET                 | `/api/staff/menu`                                | staff          | Menú con receta                          |
+| POST                | `/api/employee/orders`                           | mesero/admin   | Crear pedido para una mesa               |
+| GET                 | `/api/employee/tables/{id}/orders`               | mesero/admin   | Pedidos de una mesa                      |
+| GET                 | `/api/cook/queue`                                | cocinero/admin | Cola de platos por preparar (con receta) |
+| PUT                 | `/api/cook/order-items/{id}/status?status=READY` | cocinero/admin | Marcar plato listo                       |
+| GET/POST/PUT/DELETE | `/api/admin/staff[/{id}]`                        | admin          | CRUD de personal                         |
+| GET/POST/PUT/DELETE | `/api/admin/menu[/{id}]`                         | admin          | CRUD de menú                             |
+| POST/PUT/DELETE     | `/api/employee/tables[/{id}]`                    | admin/mesero   | Crear, mover y eliminar mesas            |
+| GET                 | `/api/admin/orders`                              | admin          | Todos los pedidos                        |
 
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login and get JWT token
+---
 
-### Public Endpoints
+## Seguridad
 
-- `GET /api/public/restaurants` - Get all active restaurants
-- `GET /api/public/restaurants/{slug}` - Get restaurant by slug
-- `GET /api/public/restaurants/{slug}/tables` - Get restaurant tables
+- Autenticación con **JWT** (algoritmo HS512).
+- Control de acceso por rol (RBAC) en cada endpoint.
+- Contraseñas cifradas con **BCrypt**.
 
-### Admin Endpoints (Role: ADMIN)
+## Licencia
 
-- `POST /api/admin/restaurants/register` - Register a new restaurant
-- `GET /api/admin/restaurants` - Get all restaurants
-- `GET /api/admin/reservations` - Get all reservations
-- `GET /api/admin/orders` - Get all orders
-- `GET /api/admin/orders/active` - Get active orders
-
-### Employee Endpoints (Role: EMPLOYEE, ADMIN)
-
-- `POST /api/employee/tables` - Create a table
-- `GET /api/employee/tables/{id}` - Get table by ID
-- `PUT /api/employee/tables/{id}` - Update table
-- `DELETE /api/employee/tables/{id}` - Delete table
-- `POST /api/employee/orders` - Create an order
-- `GET /api/employee/orders` - Get employee's orders
-- `PUT /api/employee/orders/{id}/status` - Update order status
-
-### Customer Endpoints (Role: CUSTOMER, EMPLOYEE, ADMIN)
-
-- `POST /api/customer/reservations` - Create a reservation
-- `GET /api/customer/reservations` - Get customer's reservations
-- `PUT /api/customer/reservations/{id}` - Update reservation
-- `PUT /api/customer/reservations/{id}/confirm` - Confirm reservation
-- `PUT /api/customer/reservations/{id}/cancel` - Cancel reservation
-
-## Restaurant Registration
-
-When registering a restaurant, the system automatically:
-
-1. Creates the restaurant entity with tables, chairs, and floors configuration
-2. Creates an admin user for the restaurant
-3. Generates a dynamic website for the restaurant
-4. Provides a unique slug for the restaurant's URL
-
-Example registration request:
-
-```json
-{
-  "name": "Mi Restaurante",
-  "description": "Comida deliciosa",
-  "address": "Calle 123",
-  "phone": "1234567890",
-  "email": "contacto@mirestaurante.com",
-  "numberOfTables": 20,
-  "numberOfChairs": 80,
-  "numberOfFloors": 2,
-  "adminEmail": "admin@mirestaurante.com",
-  "adminPassword": "password123",
-  "adminName": "Admin User"
-}
-```
-
-## Dynamic Website Generation
-
-Each restaurant gets a dynamically generated website with:
-
-- Restaurant information display
-- Interactive table selection by floor
-- Reservation form for customers
-- Responsive design with Tailwind CSS
-
-Generated websites are stored in the `generated-websites` directory.
-
-## Security
-
-- JWT-based authentication
-- Role-based access control (RBAC)
-- Password encryption with BCrypt
-- Protected endpoints based on user roles
-
-## Database Schema
-
-### Tables
-
-- `users` - User accounts with roles
-- `restaurants` - Restaurant information
-- `tables` - Restaurant tables with floor and capacity
-- `reservations` - Customer reservations
-- `orders` - Employee orders
-- `order_items` - Order line items
-
-## Development
-
-### Running Tests
-
-```bash
-./gradlew test
-```
-
-### Code Style
-
-The project uses Kotlin official coding style.
-
-## License
-
-Copyright © 2026 Restaurant Reservations Platform. All rights reserved.
+Copyright © 2026. Todos los derechos reservados.

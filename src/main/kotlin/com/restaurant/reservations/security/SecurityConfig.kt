@@ -44,6 +44,8 @@ class SecurityConfig(
                     .requestMatchers("/api/public/**").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/employee/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                    .requestMatchers("/api/cook/**").hasAnyRole("ADMIN", "COOK")
+                    .requestMatchers("/api/staff/**").hasAnyRole("ADMIN", "EMPLOYEE", "COOK")
                     .requestMatchers("/api/customer/**").hasAnyRole("ADMIN", "EMPLOYEE", "CUSTOMER")
                     .anyRequest().authenticated()
             }

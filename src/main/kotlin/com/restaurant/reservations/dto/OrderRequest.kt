@@ -1,5 +1,7 @@
 package com.restaurant.reservations.dto
 
+import jakarta.validation.constraints.Min
+
 data class OrderRequest(
     val tableId: Long,
     val items: List<OrderItemRequest>,
@@ -7,8 +9,10 @@ data class OrderRequest(
 )
 
 data class OrderItemRequest(
-    val itemName: String,
+    val menuItemId: Long,
+
+    @field:Min(1)
     val quantity: Int,
-    val price: Double,
+
     val notes: String? = null
 )

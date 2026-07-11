@@ -21,17 +21,13 @@ class TableController(
         return ResponseEntity.ok(table)
     }
     
-    @GetMapping("/public/restaurants/{restaurantId}/tables")
-    fun getTablesByRestaurant(
-        @PathVariable restaurantId: Long,
+    // Mesas del restaurante del usuario autenticado (personal: mesero, cocinero, admin).
+    @GetMapping("/staff/tables")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'COOK')")
+    fun getMyTables(
         @RequestParam(required = false) floor: Int?
     ): ResponseEntity<List<TableResponse>> {
-        val tables = if (floor != null) {
-            tableService.getTablesByFloor(restaurantId, floor)
-        } else {
-            tableService.getTablesByRestaurant(restaurantId)
-        }
-        return ResponseEntity.ok(tables)
+        return ResponseEntity.ok(tableService.getMyTables(floor))
     }
     
     @GetMapping("/employee/tables/{id}")

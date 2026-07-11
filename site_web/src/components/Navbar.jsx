@@ -1,32 +1,77 @@
-import { LockKeyhole, Martini } from "lucide-react";
+import { ChefHat, LayoutGrid, LogOut, Martini, Users } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+
+// Enlaces de navegación disponibles por rol.
+const LINKS = [
+  { to: "/piso", label: "Piso / Mesas", icon: LayoutGrid, roles: ["EMPLOYEE", "ADMIN"] },
+  { to: "/cocina", label: "Cocina", icon: ChefHat, roles: ["COOK", "ADMIN"] },
+  { to: "/admin", label: "Administración", icon: Users, roles: ["ADMIN"] }
+];
 
 export default function Navbar() {
+  const { session, role, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  const links = LINKS.filter((link) => link.roles.includes(role));
+
   return (
     <nav className="sticky top-0 z-30 border-b border-white/10 bg-carbon/88 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-8 gap-y-4 px-5 py-4">
+        {/* Lado izquierdo: branding — icono y título agrupados y alineados verticalmente */}
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full border border-gold/50 bg-metal shadow-gold">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold/50 bg-metal shadow-gold">
             <Martini className="h-5 w-5 text-carbon" />
           </span>
-          <div>
-            <p className="text-sm uppercase tracking-[.28em] text-gold">Maison Noir</p>
-            <h1 className="text-xl font-semibold text-champagne">Reservas Premium</h1>
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs uppercase tracking-[.28em] text-gold">Maison Noir</span>
+            <span className="text-xl font-semibold text-champagne">Operación</span>
           </div>
         </div>
-        <div className="hidden items-center gap-8 text-sm text-zinc-300 md:flex">
-          <a href="#mesas" className="transition hover:text-champagne">
-            Mesas Disponibles
-          </a>
-          <a href="#faq" className="transition hover:text-champagne">
-            F&Q
-          </a>
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-gold/40 px-4 py-2 text-champagne shadow-neon transition hover:border-gold/70"
-          >
-            <LockKeyhole className="h-4 w-4" />
-            Mi Cuenta
-          </button>
+
+        {/* Lado derecho: navegación y sesión, separadas con un gap amplio para que respiren */}
+        <div className="flex items-center gap-4 text-sm text-zinc-300">
+          <div className="flex items-center gap-2">
+            {links.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  [
+                    "inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 transition",
+                    isActive
+                      ? "border-gold/70 text-champagne shadow-neon"
+                      : "border-white/10 hover:border-gold/40 hover:text-champagne"
+                  ].join(" ")
+                }
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+              </NavLink>
+            ))}
+          </div>
+
+          {session && (
+            <div className="flex items-center gap-4 border-l border-white/10 pl-4">
+              <div className="hidden text-right leading-tight sm:block">
+                <p className="text-xs text-zinc-400">{session.email}</p>
+                <p className="text-xs uppercase tracking-[.18em] text-gold">{role}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-gold/40 px-4 py-2 text-champagne transition hover:border-gold/70"
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+                Salir
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>

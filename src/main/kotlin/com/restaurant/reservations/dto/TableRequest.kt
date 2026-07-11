@@ -7,6 +7,8 @@ data class TableRequest(
     @field:Min(1)
     val tableNumber: Int,
 
+    val name: String? = null,
+
     @field:Min(1)
     val floor: Int,
 
