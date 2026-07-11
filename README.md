@@ -1,6 +1,10 @@
-![Vista del proyecto en ejecución](site-web.png)
+![Vista del proyecto en ejecución](site_web.png)
 
 # Maison Noir · Sistema de Operación de Restaurante
+
+Hecho por: Alejandro Rodríguez Duque
+Fecha: 10/07/2026
+Utilizado con Claude.
 
 Aplicación full‑stack para operar un restaurante: los **meseros** reportan por mesa qué platos se
 piden, los **cocineros** ven la cola de cocina con la receta fija de cada plato (proteína,
@@ -75,8 +79,7 @@ ruta, ajústala ahí (o borra esa línea y usa `JAVA_HOME` apuntando a un JDK 21
 
 El backend queda en `http://localhost:8081`.
 
-> Se usa el **8081** (y no el 8080) para no chocar con Apache de XAMPP/WAMP, que suele ocupar el
-> 8080. Así puedes dejar XAMPP encendido. Si el 8081 también estuviera ocupado, cámbialo en
+> Se usa el **8081** (y no el 8080) para no chocar con Apache de XAMPP/WAMP, que suele ocupar el 8080. Así puedes dejar XAMPP encendido. Si el 8081 también estuviera ocupado, cámbialo en
 > `src/main/resources/application.yml` (`server.port`) y en el proxy de `site_web/vite.config.js`.
 
 ### 4. Frontend (React / Vite)
