@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import TableIcon from "./TableIcon";
 
-// Agrupa las mesas por zona y las posiciona en una cuadrícula coherente usando gridX/gridY.
+// Agrupa las mesas por zona y las ordena de forma estable (fila, luego columna, luego número).
 function groupByZone(tables) {
   const map = new Map();
   for (const table of tables) {
@@ -11,9 +11,12 @@ function groupByZone(tables) {
   }
   return Array.from(map.entries()).map(([zoneName, zoneTables]) => ({
     zoneName,
-    tables: zoneTables,
-    cols: Math.max(1, ...zoneTables.map((t) => t.gridX || 1)),
-    rows: Math.max(1, ...zoneTables.map((t) => t.gridY || 1))
+    tables: [...zoneTables].sort(
+      (a, b) =>
+        (a.gridY || 1) - (b.gridY || 1) ||
+        (a.gridX || 1) - (b.gridX || 1) ||
+        a.tableNumber - b.tableNumber
+    )
   }));
 }
 
@@ -21,20 +24,16 @@ export default function FloorMap({ tables, selectedTableId, onSelect }) {
   const zones = groupByZone(tables);
 
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
+    <div className="grid min-w-0 gap-4 xl:grid-cols-2">
       {zones.map((zone) => (
-        <section key={zone.zoneName} className="zone-band">
+        <section key={zone.zoneName} className="zone-band min-w-0">
           <header className="mb-4 flex items-center justify-between gap-3">
             <h3 className="truncate text-lg font-semibold text-champagne">{zone.zoneName}</h3>
             <Sparkles className="h-4 w-4 shrink-0 text-gold" />
           </header>
-          <div
-            className="grid gap-3"
-            style={{
-              gridTemplateColumns: `repeat(${zone.cols}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${zone.rows}, minmax(8.5rem, 1fr))`
-            }}
-          >
+
+          {/* Grid robusto: columnas equitativas, responsivo, sin posicionado absoluto frágil. */}
+          <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3">
             {zone.tables.map((table) => {
               const occupied = table.status === "OCCUPIED";
               const selected = selectedTableId === table.id;
@@ -44,9 +43,8 @@ export default function FloorMap({ tables, selectedTableId, onSelect }) {
                   key={table.id}
                   type="button"
                   onClick={() => onSelect(table.id)}
-                  style={{ gridColumnStart: table.gridX || 1, gridRowStart: table.gridY || 1 }}
                   className={[
-                    "table-button",
+                    "table-button box-border",
                     occupied ? "table-occupied-soft" : "table-free",
                     selected ? "table-selected" : ""
                   ].join(" ")}

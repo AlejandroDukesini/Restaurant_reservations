@@ -34,8 +34,8 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Lado derecho: navegación y sesión, separadas con un gap amplio para que respiren */}
-        <div className="flex items-center gap-4 text-sm text-zinc-300">
+        {/* Lado derecho: shrink-0 para que nunca se aplaste; gap responsivo para que respire */}
+        <div className="flex shrink-0 items-center gap-3 text-sm text-zinc-300 md:gap-4">
           <div className="flex items-center gap-2">
             {links.map(({ to, label, icon: Icon }) => (
               <NavLink
@@ -43,7 +43,7 @@ export default function Navbar() {
                 to={to}
                 className={({ isActive }) =>
                   [
-                    "inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 transition",
+                    "box-border inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 transition",
                     isActive
                       ? "border-gold/70 text-champagne shadow-neon"
                       : "border-white/10 hover:border-gold/40 hover:text-champagne"
@@ -57,7 +57,7 @@ export default function Navbar() {
           </div>
 
           {session && (
-            <div className="flex items-center gap-4 border-l border-white/10 pl-4">
+            <div className="flex items-center gap-3 border-l border-white/10 pl-3 md:gap-4 md:pl-4">
               <div className="hidden text-right leading-tight sm:block">
                 <p className="text-xs text-zinc-400">{session.email}</p>
                 <p className="text-xs uppercase tracking-[.18em] text-gold">{role}</p>
@@ -65,7 +65,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-gold/40 px-4 py-2 text-champagne transition hover:border-gold/70"
+                className="box-border inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-gold/40 px-4 py-2 text-champagne transition hover:border-gold/70"
               >
                 <LogOut className="h-4 w-4 shrink-0" />
                 Salir

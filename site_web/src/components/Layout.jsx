@@ -2,9 +2,9 @@ import Navbar from "./Navbar";
 
 export default function Layout({ title, subtitle, actions, children }) {
   return (
-    <main className="min-h-screen bg-carbon text-zinc-100">
+    <main className="min-h-screen overflow-x-hidden bg-carbon text-zinc-100">
       <Navbar />
-      <section className="mx-auto max-w-7xl px-5 py-8">
+      <section className="mx-auto w-full max-w-7xl px-5 py-8">
         {(title || actions) && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-4 border-b border-white/10 pb-5">
             <div className="flex flex-col gap-1">

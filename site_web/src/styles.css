@@ -1,8 +1,30 @@
-@config "../tailwind.config.js";
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Paleta y sombras de marca (Tailwind v4: theme definido en CSS). */
+@theme {
+  --color-carbon: #050505;
+  --color-graphite: #121212;
+  --color-obsidian: #0a0a0b;
+  --color-champagne: #f8e7b0;
+  --color-gold: #d8a943;
+  --color-antique: #8e6a2a;
+
+  --shadow-gold: 0 0 28px rgba(216, 169, 67, 0.42), inset 0 0 18px rgba(248, 231, 176, 0.12);
+  --shadow-neon: 0 0 22px rgba(248, 231, 176, 0.24);
+}
+
+/* Degradado metálico dorado (no cabe en un token de color de Tailwind). */
+.bg-metal {
+  background-image: linear-gradient(
+    135deg,
+    #76551c 0%,
+    #f8e7b0 22%,
+    #b8862f 42%,
+    #fff1bc 54%,
+    #9f7428 75%,
+    #f3d17a 100%
+  );
+}
 
 :root {
   color-scheme: dark;
@@ -45,6 +67,7 @@ input::placeholder {
   align-items: center;
   justify-content: center;
   gap: .45rem;
+  min-height: 8.5rem;
   height: 100%;
   border: 1px solid rgba(142, 106, 42, .45);
   background: rgba(10, 10, 11, .88);
