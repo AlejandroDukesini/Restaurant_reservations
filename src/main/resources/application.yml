@@ -2,9 +2,10 @@ spring:
   application:
     name: restaurant-reservations
   datasource:
-    url: jdbc:postgresql://localhost:5432/restaurant_reservations
-    username: postgres
-    password: postgres
+    # En Railway se inyecta SPRING_DATASOURCE_URL; en local se usa el valor por defecto.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/restaurant_reservations}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   sql:
     init:
@@ -12,7 +13,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${JPA_SHOW_SQL:true}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -22,13 +23,14 @@ spring:
       write-dates-as-timestamps: false
 
 server:
-  # 8081 para evitar el choque con Apache/XAMPP (que suele usar el 8080).
-  port: 8081
+  # Railway inyecta PORT y espera que el contenedor escuche ahi.
+  # En local se mantiene 8081 para evitar el choque con Apache/XAMPP.
+  port: ${PORT:8081}
 
 jwt:
   # HS512 requiere una clave de al menos 512 bits (>= 64 bytes).
-  secret: maison-noir-jwt-signing-secret-key-hs512-minimum-512-bits-must-be-64plus-bytes-2026
-  expiration: 86400000
+  secret: ${JWT_SECRET:maison-noir-jwt-signing-secret-key-hs512-minimum-512-bits-must-be-64plus-bytes-2026}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 app:
   website-template-path: ./website-templates

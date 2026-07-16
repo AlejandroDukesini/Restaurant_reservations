@@ -47,7 +47,12 @@ class SecurityConfig(
                     .requestMatchers("/api/cook/**").hasAnyRole("ADMIN", "COOK")
                     .requestMatchers("/api/staff/**").hasAnyRole("ADMIN", "EMPLOYEE", "COOK")
                     .requestMatchers("/api/customer/**").hasAnyRole("ADMIN", "EMPLOYEE", "CUSTOMER")
-                    .anyRequest().authenticated()
+                    // Cualquier otra ruta /api/** sigue requiriendo autenticacion.
+                    .requestMatchers("/api/**").authenticated()
+                    // El resto son los archivos estaticos del SPA (index.html, assets,
+                    // y las rutas de React Router): deben ser publicos o el navegador
+                    // recibe 401 y la pagina queda en blanco.
+                    .anyRequest().permitAll()
             }
         
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
