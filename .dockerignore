@@ -1,0 +1,11 @@
+.git
+.gradle
+build
+.idea
+.vscode
+site_web/node_modules
+site_web/dist
+generated-websites
+*.log
+site_web.png
+README.md
