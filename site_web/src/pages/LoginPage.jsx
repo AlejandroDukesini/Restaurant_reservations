@@ -101,8 +101,8 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-zinc-500">
-          <p className="uppercase tracking-[.18em] text-zinc-400">Cuentas de demostración</p>
+        <div className="mt-6 text-center text-xs text-zinc-400">
+          <p className="uppercase tracking-[.18em] text-zinc-300">Cuentas de demostración</p>
           <p className="mt-1">Contraseña: password123</p>
           <div className="mt-3 flex flex-wrap justify-center gap-2">
             {DEMO_ACCOUNTS.map((acc) => (

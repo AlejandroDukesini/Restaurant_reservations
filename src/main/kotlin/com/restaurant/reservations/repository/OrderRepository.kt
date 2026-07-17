@@ -18,9 +18,18 @@ interface OrderRepository : JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.table.restaurant.id = :restaurantId")
     fun findByRestaurantId(@Param("restaurantId") restaurantId: Long): List<Order>
 
-    // Cola de cocina: pedidos del restaurante que no están terminados/cancelados
+    // Cola de cocina: pedidos del restaurante que no están terminados/cancelados.
+    // JOIN FETCH resuelve en UNA sola consulta todo lo que la cola necesita renderizar
+    // (platos, su receta, mesa, restaurante y mesero), eliminando el N+1 que generaba
+    // el acceso lazy a o.items / o.table.restaurant / o.employee / item.menuItem.
     @Query(
-        "SELECT DISTINCT o FROM Order o WHERE o.table.restaurant.id = :restaurantId " +
+        "SELECT DISTINCT o FROM Order o " +
+            "LEFT JOIN FETCH o.items i " +
+            "LEFT JOIN FETCH i.menuItem " +
+            "JOIN FETCH o.table t " +
+            "JOIN FETCH t.restaurant " +
+            "JOIN FETCH o.employee " +
+            "WHERE t.restaurant.id = :restaurantId " +
             "AND o.status IN :statuses ORDER BY o.orderDate ASC"
     )
     fun findActiveByRestaurant(
