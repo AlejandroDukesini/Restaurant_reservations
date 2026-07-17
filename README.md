@@ -173,6 +173,60 @@ reservas/
 - Control de acceso por rol (RBAC) en cada endpoint.
 - Contraseñas cifradas con **BCrypt**.
 
+---
+
+## Performance & Scalability
+
+> Cifras **medidas**, no estimadas. La metodología completa y los comandos para reproducirlas
+> están en [`perf/README.md`](perf/README.md).
+
+### Backend · eliminación de N+1 en el endpoint más pesado
+
+El endpoint crítico es `GET /api/cook/queue`, que agrega todos los platos pendientes de los
+pedidos activos con su receta, mesa y mesero. La consulta original traía solo los `Order` y
+disparaba carga *lazy* de cada relación (problema **N+1**). Se reescribió
+`OrderRepository.findActiveByRestaurant` con `JOIN FETCH` para resolver todo en una sola consulta.
+
+Medido con **k6** sobre una cola de **450 platos** (150 pedidos activos), 20 usuarios concurrentes:
+
+| Métrica                     |  Antes (N+1) | Después (`JOIN FETCH`) |    Mejora |
+| --------------------------- | -----------: | ---------------------: | --------: |
+| **Consultas SQL / request** |      **157** |                  **3** | **98 % ↓** |
+| Throughput (RPS)            |         2.82 |                   ~52  | **18× ↑** |
+| Latencia media              |       5.53 s |                 309 ms |   94 % ↓  |
+| Latencia **p95**            |       8.77 s |                 767 ms |   91 % ↓  |
+| Latencia **p99**            |       9.13 s |                 1.24 s |   86 % ↓  |
+| Tasa de éxito               |         100% |                   100% |     —     |
+
+Apoyado en el **pool de conexiones HikariCP** de Spring Boot y en el *fetching* en un solo viaje
+a la base de datos, en lugar de cientos de round-trips por petición.
+
+### Frontend · Google Lighthouse (build de producción)
+
+| Categoría      | 📱 Móvil | 🖥️ Escritorio |
+| -------------- | :------: | :------------: |
+| Performance    |  97–99   |    **100**     |
+| Accessibility  | **100**  |    **100**     |
+| Best Practices | **100**  |    **100**     |
+| SEO            | **100**  |    **100**     |
+
+**Core Web Vitals:** LCP **1.7 s** (móvil) / **0.4 s** (escritorio) · TBT ≤ **140 ms** · CLS **0**.
+
+Logrado con: build de Vite con *code-splitting*, *tree-shaking* y minificación; CSS purgado por
+Tailwind (bundle único y liviano); contraste AA en toda la UI; favicon SVG y metadatos
+(`meta description` + `robots.txt`) para 100 en Best Practices y SEO. CLS 0 = cero saltos de layout.
+
+### Cómo reproducirlo
+
+```bash
+# Frontend
+cd site_web && corepack pnpm build && corepack pnpm preview
+npx lighthouse http://127.0.0.1:4173/ --preset=desktop
+
+# Backend (con la base sembrada, ver perf/README.md)
+k6 run perf/cook-queue-load.js
+```
+
 ## Licencia
 
 Copyright © 2026. Todos los derechos reservados.
