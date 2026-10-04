@@ -3,6 +3,7 @@ package com.restaurant.reservations.controller
 import com.restaurant.reservations.dto.OrderRequest
 import com.restaurant.reservations.dto.OrderResponse
 import com.restaurant.reservations.service.OrderService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -15,7 +16,7 @@ class OrderController(
     
     @PostMapping("/employee/orders")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    fun createOrder(@RequestBody request: OrderRequest): ResponseEntity<OrderResponse> {
+    fun createOrder(@Valid @RequestBody request: OrderRequest): ResponseEntity<OrderResponse> {
         val order = orderService.createOrder(request)
         return ResponseEntity.ok(order)
     }

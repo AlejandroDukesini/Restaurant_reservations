@@ -39,7 +39,10 @@ export async function apiFetch(path, { method = "GET", body, auth = true, params
     body: body !== undefined ? JSON.stringify(body) : undefined
   });
 
-  if (response.status === 401) {
+  // Solo un 401 en una petición autenticada significa "sesión caducada".
+  // En el login (auth: false) el 401 es "credenciales inválidas" y debe llegar
+  // al formulario con su propio mensaje.
+  if (response.status === 401 && auth) {
     clearSession();
     if (!window.location.pathname.startsWith("/login")) {
       window.location.assign("/login");

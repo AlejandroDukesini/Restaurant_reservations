@@ -2,10 +2,13 @@ package com.restaurant.reservations.service
 
 import com.restaurant.reservations.dto.TableRequest
 import com.restaurant.reservations.dto.TableResponse
+import com.restaurant.reservations.exception.ResourceNotFoundException
+import com.restaurant.reservations.exception.ValidationBusinessException
 import com.restaurant.reservations.model.RestaurantTable
 import com.restaurant.reservations.repository.RestaurantRepository
 import com.restaurant.reservations.repository.TableRepository
 import com.restaurant.reservations.repository.ZoneRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,7 +19,10 @@ class TableService(
     private val zoneRepository: ZoneRepository,
     private val authService: AuthService
 ) {
-    
+
+    private val log = LoggerFactory.getLogger(TableService::class.java)
+
+
     @Transactional
     fun createTable(request: TableRequest): TableResponse {
         val restaurantId = authService.getCurrentUserRestaurantId()
@@ -64,25 +70,25 @@ class TableService(
     
     fun getTableById(id: Long): TableResponse {
         val table = tableRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Table not found") }
+            .orElseThrow { ResourceNotFoundException("Table not found") }
+        // Faltaba el control de tenant: cualquier mesero podia leer mesas
+        // (numero, capacidad, precio) de otros restaurantes iterando el id.
+        requireOwnRestaurant(table.restaurant.id)
         return toResponse(table)
     }
-    
+
     @Transactional
     fun updateTable(id: Long, request: TableRequest): TableResponse {
         val table = tableRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Table not found") }
-        
-        val restaurantId = authService.getCurrentUserRestaurantId()
-        if (table.restaurant.id != restaurantId) {
-            throw IllegalArgumentException("Unauthorized access to table")
-        }
+            .orElseThrow { ResourceNotFoundException("Table not found") }
+
+        val restaurantId = requireOwnRestaurant(table.restaurant.id)
 
         val zone = request.zoneId?.let {
-            zoneRepository.findByIdAndRestaurantId(it, restaurantId!!)
-                .orElseThrow { IllegalArgumentException("Zone not found for restaurant") }
+            zoneRepository.findByIdAndRestaurantId(it, restaurantId)
+                .orElseThrow { ResourceNotFoundException("Zone not found for restaurant") }
         }
-        
+
         val updatedTable = table.copy(
             tableNumber = request.tableNumber,
             name = request.name,
@@ -100,17 +106,32 @@ class TableService(
     @Transactional
     fun deleteTable(id: Long) {
         val table = tableRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Table not found") }
-        
-        val restaurantId = authService.getCurrentUserRestaurantId()
-        if (table.restaurant.id != restaurantId) {
-            throw IllegalArgumentException("Unauthorized access to table")
-        }
-        
+            .orElseThrow { ResourceNotFoundException("Table not found") }
+
+        requireOwnRestaurant(table.restaurant.id)
+
         val deactivatedTable = table.copy(active = false)
         tableRepository.save(deactivatedTable)
     }
-    
+
+    /**
+     * Exige que el recurso pertenezca al restaurante del usuario autenticado y
+     * devuelve ese id. Responde 404 para no confirmar la existencia de mesas ajenas.
+     */
+    private fun requireOwnRestaurant(ownerRestaurantId: Long?): Long {
+        val callerRestaurantId = authService.getCurrentUserRestaurantId()
+            ?: throw ValidationBusinessException("User not associated with a restaurant")
+        if (ownerRestaurantId != callerRestaurantId) {
+            log.warn(
+                "Acceso cross-tenant a mesa denegado: userId={} (restaurante {}) pidio recurso del restaurante {}",
+                authService.getCurrentUserId(), callerRestaurantId, ownerRestaurantId
+            )
+            throw ResourceNotFoundException("Table not found")
+        }
+        return callerRestaurantId
+    }
+
+
     private fun toResponse(table: RestaurantTable): TableResponse {
         return TableResponse(
             id = table.id!!,

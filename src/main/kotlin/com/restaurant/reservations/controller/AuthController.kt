@@ -3,8 +3,9 @@ package com.restaurant.reservations.controller
 import com.restaurant.reservations.dto.LoginRequest
 import com.restaurant.reservations.dto.LoginResponse
 import com.restaurant.reservations.dto.RegisterRequest
-import com.restaurant.reservations.model.User
+import com.restaurant.reservations.dto.RegisterResponse
 import com.restaurant.reservations.service.AuthService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -13,15 +14,15 @@ import org.springframework.web.bind.annotation.*
 class AuthController(
     private val authService: AuthService
 ) {
-    
+
     @PostMapping("/register")
-    fun register(@RequestBody request: RegisterRequest): ResponseEntity<User> {
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<RegisterResponse> {
         val user = authService.register(request)
         return ResponseEntity.ok(user)
     }
-    
+
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
+    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
         val response = authService.login(request)
         return ResponseEntity.ok(response)
     }

@@ -12,8 +12,12 @@ spring:
       mode: never
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: ${JPA_SHOW_SQL:true}
+      # En produccion debe fijarse JPA_DDL_AUTO=validate y migrar el esquema con
+      # una herramienta versionada (Flyway/Liquibase): 'update' deja que la app
+      # altere el esquema en caliente, lo que amplifica cualquier RCE o error.
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    # El SQL en consola filtra estructura y datos a los logs: apagado por defecto.
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -26,12 +30,45 @@ server:
   # Railway inyecta PORT y espera que el contenedor escuche ahi.
   # En local se mantiene 8081 para evitar el choque con Apache/XAMPP.
   port: ${PORT:8081}
+  error:
+    # No exponer stacktrace ni mensaje interno en las paginas de error de Spring.
+    include-stacktrace: never
+    include-message: never
+    include-exception: false
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: ${COOKIE_SECURE:true}
+        same-site: strict
+  tomcat:
+    # Techo al tamano de peticion: limita el abuso de memoria por cuerpos gigantes.
+    max-http-form-post-size: 256KB
 
 jwt:
   # HS512 requiere una clave de al menos 512 bits (>= 64 bytes).
-  secret: ${JWT_SECRET:maison-noir-jwt-signing-secret-key-hs512-minimum-512-bits-must-be-64plus-bytes-2026}
+  # Sin valor por defecto a proposito: un secreto en el repositorio permite a
+  # cualquiera que lea el codigo firmar tokens validos de administrador.
+  # Si no se define, JwtTokenProvider genera una clave efimera y avisa por log.
+  secret: ${JWT_SECRET:}
   expiration: ${JWT_EXPIRATION:86400000}
 
 app:
   website-template-path: ./website-templates
   generated-websites-path: ./generated-websites
+  # Credenciales de las cuentas de demostracion sembradas en una base vacia.
+  # En un despliegue real debe definirse SEED_PASSWORD con un valor unico,
+  # o desactivarse la siembra con SEED_ENABLED=false.
+  seed:
+    enabled: ${SEED_ENABLED:true}
+    password: ${SEED_PASSWORD:password123}
+  # Limite de peticiones por IP para los endpoints sensibles (login y reserva publica).
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    login-attempts-per-minute: ${RATE_LIMIT_LOGIN:10}
+    public-writes-per-minute: ${RATE_LIMIT_PUBLIC:20}
+
+logging:
+  level:
+    # Trazas de autenticacion/autorizacion para el SOC sin activar debug global.
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}

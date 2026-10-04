@@ -37,6 +37,18 @@ generated-websites/
 # Application
 application-local.yml
 
+# Secretos y configuracion local (nunca deben versionarse)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+
+# Informe de auditoria de seguridad
+cibersegurity.txt
+
 # Node / frontend (site_web)
 node_modules/
 dist/

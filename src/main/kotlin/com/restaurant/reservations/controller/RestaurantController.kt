@@ -3,6 +3,7 @@ package com.restaurant.reservations.controller
 import com.restaurant.reservations.dto.RestaurantRegistrationRequest
 import com.restaurant.reservations.dto.RestaurantResponse
 import com.restaurant.reservations.service.RestaurantService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -13,9 +14,9 @@ import org.springframework.web.bind.annotation.*
 class RestaurantController(
     private val restaurantService: RestaurantService
 ) {
-    
+
     @PostMapping("/register")
-    fun registerRestaurant(@RequestBody request: RestaurantRegistrationRequest): ResponseEntity<RestaurantResponse> {
+    fun registerRestaurant(@Valid @RequestBody request: RestaurantRegistrationRequest): ResponseEntity<RestaurantResponse> {
         val response = restaurantService.registerRestaurant(request)
         return ResponseEntity.ok(response)
     }
@@ -35,7 +36,7 @@ class RestaurantController(
     @PutMapping("/{id}")
     fun updateRestaurant(
         @PathVariable id: Long,
-        @RequestBody request: RestaurantRegistrationRequest
+        @Valid @RequestBody request: RestaurantRegistrationRequest
     ): ResponseEntity<RestaurantResponse> {
         val restaurant = restaurantService.updateRestaurant(id, request)
         return ResponseEntity.ok(restaurant)

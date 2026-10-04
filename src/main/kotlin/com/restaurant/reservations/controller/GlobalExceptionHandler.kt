@@ -4,12 +4,16 @@ import com.restaurant.reservations.exception.BusinessException
 import com.restaurant.reservations.exception.ReservationConflictException
 import com.restaurant.reservations.exception.ResourceNotFoundException
 import jakarta.validation.ConstraintViolationException
+import org.slf4j.LoggerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import java.util.UUID
 
 data class ApiErrorResponse(
     val status: Int,
@@ -20,6 +24,24 @@ data class ApiErrorResponse(
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+
+    // 403 de @PreAuthorize: es la senal de que alguien con sesion valida intento
+    // usar un endpoint fuera de su rol. Se registra y se responde sin detalle.
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDenied(exception: AccessDeniedException): ResponseEntity<ApiErrorResponse> {
+        log.warn("Acceso denegado por autorizacion: {}", exception.message)
+        return error(HttpStatus.FORBIDDEN, "Access denied")
+    }
+
+    @ExceptionHandler(AuthenticationException::class)
+    fun handleAuthentication(exception: AuthenticationException): ResponseEntity<ApiErrorResponse> {
+        // Mensaje generico e identico para usuario inexistente y clave incorrecta:
+        // distinguirlos permite enumerar cuentas validas.
+        return error(HttpStatus.UNAUTHORIZED, "Invalid credentials")
+    }
+
     @ExceptionHandler(ResourceNotFoundException::class)
     fun handleNotFound(exception: ResourceNotFoundException): ResponseEntity<ApiErrorResponse> {
         return error(HttpStatus.NOT_FOUND, exception.message ?: "Resource not found")
@@ -59,7 +81,12 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleUnexpected(exception: Exception): ResponseEntity<ApiErrorResponse> {
-        return error(HttpStatus.INTERNAL_SERVER_ERROR, exception.message ?: "Unexpected server error")
+        // El mensaje de una excepcion no controlada suele contener SQL, rutas del
+        // sistema o nombres de clase; se queda en el log del servidor y al cliente
+        // solo le llega un identificador para correlacionar la incidencia.
+        val errorId = UUID.randomUUID().toString()
+        log.error("Error no controlado [{}]", errorId, exception)
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error (ref: $errorId)")
     }
 
     private fun error(

@@ -1,48 +1,66 @@
 package com.restaurant.reservations.service
 
+import com.restaurant.reservations.exception.ValidationBusinessException
 import com.restaurant.reservations.model.Restaurant
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Paths
 
 @Service
 class WebsiteGeneratorService(
     @Value("\${app.generated-websites-path}") private val generatedWebsitesPath: String
 ) {
-    
+
     fun generateWebsite(restaurant: Restaurant): String {
-        val websiteDir = Paths.get(generatedWebsitesPath, restaurant.slug).toFile()
-        
+        val baseDir = Paths.get(generatedWebsitesPath).toAbsolutePath().normalize()
+        val targetPath = baseDir.resolve(restaurant.slug).normalize()
+
+        // Contencion de ruta: aunque el slug hoy se genera filtrando a [a-z0-9-],
+        // este servicio no debe confiar en esa garantia externa. Si el destino
+        // resuelto se sale del directorio base, es un intento de path traversal.
+        if (!targetPath.startsWith(baseDir) || targetPath == baseDir) {
+            throw ValidationBusinessException("Invalid restaurant slug")
+        }
+
+        val websiteDir = targetPath.toFile()
         if (!websiteDir.exists()) {
             websiteDir.mkdirs()
         }
-        
+
         generateIndexHtml(restaurant, websiteDir)
         generateStylesCss(restaurant, websiteDir)
         generateTablesJs(restaurant, websiteDir)
-        
+
         return "/${restaurant.slug}"
     }
     
     private fun generateIndexHtml(restaurant: Restaurant, websiteDir: File) {
+        // Todo campo del restaurante se escapa: son datos introducidos por el
+        // administrador y sin escapar permiten inyectar HTML/JS en el sitio
+        // generado (XSS almacenado contra los visitantes de esa pagina publica).
+        val name = htmlEscape(restaurant.name)
+        val description = htmlEscape(restaurant.description)
+        val address = htmlEscape(restaurant.address)
+        val phone = htmlEscape(restaurant.phone)
+        val email = htmlEscape(restaurant.email)
+
         val htmlContent = """
             <!DOCTYPE html>
             <html lang="es">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta name="description" content="Reserva tu mesa en ${restaurant.name}">
-                <title>${restaurant.name} - Reserva Tu Mesa</title>
+                <meta name="description" content="Reserva tu mesa en $name">
+                <title>$name - Reserva Tu Mesa</title>
                 <link rel="stylesheet" href="styles.css">
                 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
             </head>
             <body class="bg-gray-100">
                 <header class="bg-red-600 text-white py-4">
                     <div class="container mx-auto px-4">
-                        <h1 class="text-3xl font-bold">${restaurant.name}</h1>
-                        <p class="text-sm">${restaurant.description}</p>
+                        <h1 class="text-3xl font-bold">$name</h1>
+                        <p class="text-sm">$description</p>
                     </div>
                 </header>
                 
@@ -50,9 +68,9 @@ class WebsiteGeneratorService(
                     <section id="restaurant-info" class="mb-8">
                         <div class="bg-white rounded-lg shadow p-6">
                             <h2 class="text-2xl font-bold mb-4">Información del Restaurante</h2>
-                            <p><strong>Dirección:</strong> ${restaurant.address}</p>
-                            <p><strong>Teléfono:</strong> ${restaurant.phone}</p>
-                            <p><strong>Email:</strong> ${restaurant.email}</p>
+                            <p><strong>Dirección:</strong> $address</p>
+                            <p><strong>Teléfono:</strong> $phone</p>
+                            <p><strong>Email:</strong> $email</p>
                             <p><strong>Mesas:</strong> ${restaurant.numberOfTables}</p>
                             <p><strong>Sillas:</strong> ${restaurant.numberOfChairs}</p>
                             <p><strong>Pisos:</strong> ${restaurant.numberOfFloors}</p>
@@ -96,7 +114,7 @@ class WebsiteGeneratorService(
                 
                 <footer class="bg-gray-800 text-white py-4 mt-8">
                     <div class="container mx-auto px-4 text-center">
-                        <p>&copy; ${java.time.Year.now().value} ${restaurant.name}. Todos los derechos reservados.</p>
+                        <p>&copy; ${java.time.Year.now().value} $name. Todos los derechos reservados.</p>
                     </div>
                 </footer>
                 
@@ -160,7 +178,7 @@ class WebsiteGeneratorService(
     private fun generateTablesJs(restaurant: Restaurant, websiteDir: File) {
         val jsContent = """
             const API_URL = '/api';
-            const RESTAURANT_SLUG = '${restaurant.slug}';
+            const RESTAURANT_SLUG = '${jsStringEscape(restaurant.slug)}';
             let selectedTable = null;
             let currentFloor = 1;
             
@@ -256,6 +274,24 @@ class WebsiteGeneratorService(
         File(websiteDir, "tables.js").writeText(jsContent)
     }
     
+    /** Escapa texto para insertarlo en cuerpo HTML o en un atributo entrecomillado. */
+    private fun htmlEscape(value: String): String =
+        value.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#39;")
+
+    /** Escapa texto para insertarlo dentro de un literal JavaScript con comillas simples. */
+    private fun jsStringEscape(value: String): String =
+        value.replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("<", "\\u003c")
+            .replace(">", "\\u003e")
+
     private fun generateFloorSelector(numberOfFloors: Int): String {
         return (1..numberOfFloors).map { floor ->
             """<button class="floor-btn ${if (floor == 1) "active" else ""}" data-floor="$floor">Piso $floor</button>"""

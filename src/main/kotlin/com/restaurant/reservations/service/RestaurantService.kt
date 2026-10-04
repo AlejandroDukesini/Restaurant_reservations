@@ -2,12 +2,15 @@ package com.restaurant.reservations.service
 
 import com.restaurant.reservations.dto.RestaurantRegistrationRequest
 import com.restaurant.reservations.dto.RestaurantResponse
+import com.restaurant.reservations.exception.ResourceNotFoundException
+import com.restaurant.reservations.exception.ValidationBusinessException
 import com.restaurant.reservations.model.Restaurant
 import com.restaurant.reservations.model.Role
 import com.restaurant.reservations.model.User
 import com.restaurant.reservations.repository.RestaurantRepository
 import com.restaurant.reservations.repository.UserRepository
 import com.restaurant.reservations.service.WebsiteGeneratorService
+import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,9 +21,13 @@ class RestaurantService(
     private val restaurantRepository: RestaurantRepository,
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val websiteGeneratorService: WebsiteGeneratorService
+    private val websiteGeneratorService: WebsiteGeneratorService,
+    private val authService: AuthService
 ) {
-    
+
+    private val log = LoggerFactory.getLogger(RestaurantService::class.java)
+
+
     @Transactional
     fun registerRestaurant(request: RestaurantRegistrationRequest): RestaurantResponse {
         if (restaurantRepository.findBySlug(generateSlug(request.name)).isPresent) {
@@ -72,15 +79,21 @@ class RestaurantService(
     
     fun getRestaurantById(id: Long): RestaurantResponse {
         val restaurant = restaurantRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Restaurant not found") }
+            .orElseThrow { ResourceNotFoundException("Restaurant not found") }
+        requireOwnRestaurant(id)
         return toResponse(restaurant)
     }
-    
+
     @Transactional
     fun updateRestaurant(id: Long, request: RestaurantRegistrationRequest): RestaurantResponse {
         val restaurant = restaurantRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Restaurant not found") }
-        
+            .orElseThrow { ResourceNotFoundException("Restaurant not found") }
+
+        // ADMIN es el administrador de UN restaurante, no un superusuario global:
+        // sin este control cualquier admin podia editar o dar de baja el
+        // restaurante de otro tenant pasando su id.
+        requireOwnRestaurant(id)
+
         val updatedRestaurant = restaurant.copy(
             name = request.name,
             description = request.description,
@@ -98,18 +111,40 @@ class RestaurantService(
     @Transactional
     fun deleteRestaurant(id: Long) {
         val restaurant = restaurantRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Restaurant not found") }
-        
+            .orElseThrow { ResourceNotFoundException("Restaurant not found") }
+
+        requireOwnRestaurant(id)
+
+        log.warn("Restaurante {} desactivado por userId={}", id, authService.getCurrentUserId())
         val deactivatedRestaurant = restaurant.copy(active = false)
         restaurantRepository.save(deactivatedRestaurant)
     }
-    
+
+    private fun requireOwnRestaurant(id: Long) {
+        val callerRestaurantId = authService.getCurrentUserRestaurantId()
+        if (callerRestaurantId != id) {
+            log.warn(
+                "Acceso cross-tenant a restaurante denegado: userId={} (restaurante {}) pidio restaurante {}",
+                authService.getCurrentUserId(), callerRestaurantId, id
+            )
+            throw ResourceNotFoundException("Restaurant not found")
+        }
+    }
+
     private fun generateSlug(name: String): String {
-        return name.lowercase()
+        val slug = name.lowercase()
             .replace(" ", "-")
             .replace("[^a-z0-9-]".toRegex(), "")
+            .trim('-')
+        // Un slug vacio (nombre solo con simbolos) haria que el generador de sitios
+        // escribiera en el directorio raiz de salida en vez de en un subdirectorio.
+        if (slug.isEmpty()) {
+            throw ValidationBusinessException("Restaurant name must contain letters or numbers")
+        }
+        return slug
     }
-    
+
+
     private fun toResponse(restaurant: Restaurant): RestaurantResponse {
         return RestaurantResponse(
             id = restaurant.id!!,
