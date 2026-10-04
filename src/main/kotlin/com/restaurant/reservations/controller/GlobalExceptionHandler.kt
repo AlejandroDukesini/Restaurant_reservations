@@ -8,11 +8,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
+import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.util.UUID
 
 data class ApiErrorResponse(
@@ -77,6 +82,34 @@ class GlobalExceptionHandler {
     fun handleConstraintViolation(exception: ConstraintViolationException): ResponseEntity<ApiErrorResponse> {
         val details = exception.constraintViolations.map { "${it.propertyPath}: ${it.message}" }
         return error(HttpStatus.BAD_REQUEST, "Validation failed", details)
+    }
+
+    // Errores del cliente que Spring lanza antes de llegar al controlador. Sin estos
+    // handlers caian en handleUnexpected: respondian 500 y se registraban como error
+    // del servidor (JSON mal formado, parametro ausente, id no numerico, ruta inexistente).
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleUnreadableBody(exception: HttpMessageNotReadableException): ResponseEntity<ApiErrorResponse> {
+        return error(HttpStatus.BAD_REQUEST, "Malformed or incomplete request body")
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException::class)
+    fun handleMissingParameter(exception: MissingServletRequestParameterException): ResponseEntity<ApiErrorResponse> {
+        return error(HttpStatus.BAD_REQUEST, "Missing required parameter: ${exception.parameterName}")
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleTypeMismatch(exception: MethodArgumentTypeMismatchException): ResponseEntity<ApiErrorResponse> {
+        return error(HttpStatus.BAD_REQUEST, "Invalid value for parameter: ${exception.name}")
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleMethodNotSupported(exception: HttpRequestMethodNotSupportedException): ResponseEntity<ApiErrorResponse> {
+        return error(HttpStatus.METHOD_NOT_ALLOWED, "Method not allowed")
+    }
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNoResource(exception: NoResourceFoundException): ResponseEntity<ApiErrorResponse> {
+        return error(HttpStatus.NOT_FOUND, "Resource not found")
     }
 
     @ExceptionHandler(Exception::class)

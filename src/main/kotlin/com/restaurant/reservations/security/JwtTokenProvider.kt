@@ -2,6 +2,9 @@ package com.restaurant.reservations.security
 
 import io.jsonwebtoken.*
 import io.jsonwebtoken.security.Keys
+// Sin este alias, `SecurityException` resuelve a java.lang.SecurityException y la
+// excepcion de firma invalida de JJWT escapaba de validateToken en vez de dar false.
+import io.jsonwebtoken.security.SecurityException as JwtSecurityException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.Authentication
@@ -74,7 +77,7 @@ class JwtTokenProvider(
         try {
             parseClaims(token)
             return true
-        } catch (ex: SecurityException) {
+        } catch (ex: JwtSecurityException) {
             // Firma invalida: patron tipico de manipulacion del token.
             log.warn("JWT rechazado: firma invalida")
         } catch (ex: MalformedJwtException) {
@@ -95,7 +98,8 @@ class JwtTokenProvider(
 
     fun getRoleFromToken(token: String): String = parseClaims(token)["role"] as String
 
-    fun getRestaurantIdFromToken(token: String): Long? = parseClaims(token)["restaurantId"] as? Long
+    // Jackson deserializa los numeros pequenos del claim como Integer: `as? Long` daba siempre null.
+    fun getRestaurantIdFromToken(token: String): Long? = (parseClaims(token)["restaurantId"] as? Number)?.toLong()
 
     private companion object {
         const val MIN_SECRET_BYTES = 64

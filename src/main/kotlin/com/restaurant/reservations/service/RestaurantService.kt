@@ -35,7 +35,14 @@ class RestaurantService(
         }
         
         val slug = generateSlug(request.name)
-        
+
+        // Mismo criterio que el login (minusculas, sin espacios) y unicidad comprobada
+        // antes de escribir nada: el duplicado terminaba en un 500 por la restriccion unique.
+        val adminEmail = request.adminEmail.trim().lowercase()
+        if (userRepository.findByEmail(adminEmail).isPresent) {
+            throw IllegalArgumentException("Email already registered")
+        }
+
         val restaurant = Restaurant(
             name = request.name,
             slug = slug,
@@ -47,23 +54,23 @@ class RestaurantService(
             numberOfChairs = request.numberOfChairs,
             numberOfFloors = request.numberOfFloors
         )
-        
-        val savedRestaurant = restaurantRepository.save(restaurant)
-        
+
+        // websiteUrl es NOT NULL en la tabla: guardar primero con null y actualizar
+        // despues hacia fallar todo registro con una violacion de integridad (500).
+        // El generador solo necesita slug y datos descriptivos, no el id.
+        val websiteUrl = websiteGeneratorService.generateWebsite(restaurant)
+        val savedRestaurant = restaurantRepository.save(restaurant.copy(websiteUrl = websiteUrl))
+
         val admin = User(
-            email = request.adminEmail,
+            email = adminEmail,
             password = passwordEncoder.encode(request.adminPassword),
             name = request.adminName,
             role = Role.ADMIN,
             restaurant = savedRestaurant
         )
-        
+
         userRepository.save(admin)
-        
-        val websiteUrl = websiteGeneratorService.generateWebsite(savedRestaurant)
-        val updatedRestaurant = savedRestaurant.copy(websiteUrl = websiteUrl)
-        restaurantRepository.save(updatedRestaurant)
-        
+
         return toResponse(savedRestaurant)
     }
     

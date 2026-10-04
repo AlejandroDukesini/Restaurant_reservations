@@ -33,7 +33,8 @@ class StaffService(
         val restaurant = restaurantRepository.findById(restaurantId)
             .orElseThrow { IllegalArgumentException("Restaurant not found") }
 
-        if (userRepository.findByEmail(request.email).isPresent) {
+        val email = normalizeEmail(request.email)
+        if (userRepository.findByEmail(email).isPresent) {
             throw IllegalArgumentException("Email already registered")
         }
 
@@ -41,7 +42,7 @@ class StaffService(
             ?: throw IllegalArgumentException("Password is required")
 
         val user = User(
-            email = request.email,
+            email = email,
             password = passwordEncoder.encode(password),
             name = request.name,
             role = parseStaffRole(request.role),
@@ -61,11 +62,16 @@ class StaffService(
             throw IllegalArgumentException("User is not a staff member")
         }
 
+        val email = normalizeEmail(request.email)
+        if (email != user.email && userRepository.findByEmail(email).isPresent) {
+            throw IllegalArgumentException("Email already registered")
+        }
+
         val newPassword = request.password?.takeIf { it.isNotBlank() }
 
         val updated = user.copy(
             name = request.name,
-            email = request.email,
+            email = email,
             role = parseStaffRole(request.role),
             active = request.active,
             password = newPassword?.let { passwordEncoder.encode(it) } ?: user.password
@@ -84,6 +90,10 @@ class StaffService(
     private fun currentRestaurantId(): Long =
         authService.getCurrentUserRestaurantId()
             ?: throw IllegalArgumentException("User not associated with a restaurant")
+
+    // El login busca el email en minusculas y sin espacios (AuthService.login): si aqui
+    // se guardaba tal cual, una cuenta creada con mayusculas no podia iniciar sesion.
+    private fun normalizeEmail(value: String): String = value.trim().lowercase()
 
     private fun parseStaffRole(value: String): Role {
         val role = try {

@@ -55,3 +55,5 @@ dist/
 .corepack/
 .pnpm-store/
 pnpm-debug.log*
+# Reportes de cobertura de Vitest
+coverage/
