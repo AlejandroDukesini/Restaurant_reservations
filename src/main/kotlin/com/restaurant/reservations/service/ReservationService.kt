@@ -17,6 +17,10 @@ import com.restaurant.reservations.model.User
 import com.restaurant.reservations.repository.ReservationRepository
 import com.restaurant.reservations.repository.TableRepository
 import com.restaurant.reservations.repository.UserRepository
+<<<<<<< HEAD
+=======
+import org.slf4j.LoggerFactory
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -33,6 +37,10 @@ class ReservationService(
     private val passwordEncoder: PasswordEncoder,
     private val authService: AuthService
 ) {
+<<<<<<< HEAD
+=======
+    private val log = LoggerFactory.getLogger(ReservationService::class.java)
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     private val blockingStatuses = listOf(ReservationStatus.PENDING, ReservationStatus.CONFIRMED)
     private val reservationSlotHours = 2L
     
@@ -147,29 +155,46 @@ class ReservationService(
             .map { toResponse(it) }
     }
     
+    // Solo personal del restaurante dueno de la mesa: la reserva expone nombre,
+    // email implicito y peticiones especiales del cliente (datos personales).
     fun getReservationsByTable(tableId: Long): List<ReservationResponse> {
+        val table = tableRepository.findById(tableId)
+            .orElseThrow { ResourceNotFoundException("Table not found") }
+        requireSameRestaurant(table.restaurant.id)
         return reservationRepository.findByTableId(tableId)
             .map { toResponse(it) }
     }
-    
+
     fun getReservationById(id: Long): ReservationResponse {
         val reservation = reservationRepository.findById(id)
             .orElseThrow { ResourceNotFoundException("Reservation not found") }
+<<<<<<< HEAD
+=======
+        requireCanAccess(reservation)
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
         return toResponse(reservation)
     }
-    
+
+
     @Transactional
     fun updateReservation(id: Long, request: ReservationRequest): ReservationResponse {
         val reservation = reservationRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Reservation not found") }
-        
-        val customerId = authService.getCurrentUserId()
-        if (reservation.customer.id != customerId && authService.getCurrentUserRole().name != "ADMIN") {
-            throw IllegalArgumentException("Unauthorized access to reservation")
-        }
-        
+            .orElseThrow { ResourceNotFoundException("Reservation not found") }
+
+        requireCanAccess(reservation)
+
         val table = tableRepository.findById(request.tableId)
+<<<<<<< HEAD
             .orElseThrow { IllegalArgumentException("Table not found") }
+=======
+            .orElseThrow { ResourceNotFoundException("Table not found") }
+
+        // La mesa destino debe pertenecer al mismo restaurante que la reserva original:
+        // si no, se puede mover una reserva al mapa de otro tenant.
+        if (table.restaurant.id != reservation.table.restaurant.id) {
+            throw ValidationBusinessException("Table belongs to a different restaurant")
+        }
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 
         if (request.numberOfGuests > table.capacity) {
             throw IllegalArgumentException("Number of guests exceeds table capacity")
@@ -194,41 +219,88 @@ class ReservationService(
     @Transactional
     fun confirmReservation(id: Long): ReservationResponse {
         val reservation = reservationRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Reservation not found") }
-        
+            .orElseThrow { ResourceNotFoundException("Reservation not found") }
+
+        requireCanAccess(reservation)
+
         val updatedReservation = reservation.copy(
             status = ReservationStatus.CONFIRMED,
             confirmed = true
         )
-        
+
         return toResponse(reservationRepository.save(updatedReservation))
     }
-    
+
     @Transactional
     fun cancelReservation(id: Long): ReservationResponse {
         val reservation = reservationRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Reservation not found") }
-        
-        val customerId = authService.getCurrentUserId()
-        if (reservation.customer.id != customerId && authService.getCurrentUserRole().name != "ADMIN") {
-            throw IllegalArgumentException("Unauthorized access to reservation")
-        }
-        
+            .orElseThrow { ResourceNotFoundException("Reservation not found") }
+
+        requireCanAccess(reservation)
+
         val updatedReservation = reservation.copy(
             status = ReservationStatus.CANCELLED
         )
-        
+
         return toResponse(reservationRepository.save(updatedReservation))
     }
-    
+
     @Transactional
     fun deleteReservation(id: Long) {
         val reservation = reservationRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Reservation not found") }
-        
+            .orElseThrow { ResourceNotFoundException("Reservation not found") }
+
+        requireCanAccess(reservation)
+
+        log.info(
+            "Reserva {} eliminada por userId={} role={}",
+            id, authService.getCurrentUserId(), authService.getCurrentUserRole()
+        )
         reservationRepository.delete(reservation)
     }
+<<<<<<< HEAD
     
+=======
+
+    /**
+     * Autorizacion a nivel de objeto (evita IDOR):
+     *  - el cliente dueno de la reserva,
+     *  - o personal (ADMIN/EMPLOYEE) del restaurante al que pertenece la mesa.
+     *
+     * Se responde 404 y no 403 para no confirmar la existencia de reservas ajenas.
+     */
+    private fun requireCanAccess(reservation: Reservation) {
+        val userId = authService.getCurrentUserId()
+        if (reservation.customer.id == userId) return
+
+        val role = authService.getCurrentUserRole()
+        val restaurantId = authService.getCurrentUserRestaurantId()
+        val sameRestaurant = restaurantId != null && restaurantId == reservation.table.restaurant.id
+        if ((role == Role.ADMIN || role == Role.EMPLOYEE) && sameRestaurant) return
+
+        log.warn(
+            "Acceso denegado a reserva {}: userId={} role={} restaurantId={}",
+            reservation.id, userId, role, restaurantId
+        )
+        throw ResourceNotFoundException("Reservation not found")
+    }
+
+    private fun requireSameRestaurant(restaurantId: Long?) {
+        val role = authService.getCurrentUserRole()
+        val callerRestaurantId = authService.getCurrentUserRestaurantId()
+        if (callerRestaurantId == null || callerRestaurantId != restaurantId ||
+            (role != Role.ADMIN && role != Role.EMPLOYEE && role != Role.COOK)
+        ) {
+            log.warn(
+                "Acceso cross-tenant denegado: userId={} role={} pidio restaurantId={}",
+                authService.getCurrentUserId(), role, restaurantId
+            )
+            throw ResourceNotFoundException("Table not found")
+        }
+    }
+
+
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     private fun validateTableAvailability(
         table: com.restaurant.reservations.model.RestaurantTable,
         numberOfGuests: Int,

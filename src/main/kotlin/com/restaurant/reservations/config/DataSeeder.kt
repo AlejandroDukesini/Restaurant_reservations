@@ -12,6 +12,11 @@ import com.restaurant.reservations.repository.RestaurantRepository
 import com.restaurant.reservations.repository.TableRepository
 import com.restaurant.reservations.repository.UserRepository
 import com.restaurant.reservations.repository.ZoneRepository
+<<<<<<< HEAD
+=======
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -25,6 +30,7 @@ class DataSeeder(
     private val tableRepository: TableRepository,
     private val userRepository: UserRepository,
     private val menuItemRepository: MenuItemRepository,
+<<<<<<< HEAD
     private val passwordEncoder: PasswordEncoder
 ) : ApplicationRunner {
 
@@ -32,6 +38,33 @@ class DataSeeder(
     override fun run(args: ApplicationArguments) {
         if (restaurantRepository.count() > 0) return
 
+=======
+    private val passwordEncoder: PasswordEncoder,
+    // La siembra de demostracion crea cuentas con una contrasena conocida y
+    // publicada en la pantalla de login. Se puede desactivar (SEED_ENABLED=false)
+    // o cambiar la contrasena (SEED_PASSWORD) sin tocar el codigo.
+    @Value("\${app.seed.enabled:true}") private val seedEnabled: Boolean,
+    @Value("\${app.seed.password:password123}") private val seedPassword: String
+) : ApplicationRunner {
+
+    private val log = LoggerFactory.getLogger(DataSeeder::class.java)
+
+    @Transactional
+    override fun run(args: ApplicationArguments) {
+        if (!seedEnabled) {
+            log.info("Siembra de datos de demostracion desactivada (SEED_ENABLED=false)")
+            return
+        }
+        if (restaurantRepository.count() > 0) return
+
+        if (seedPassword == DEFAULT_SEED_PASSWORD) {
+            log.warn(
+                "Sembrando cuentas de demostracion con la contrasena por defecto. " +
+                    "En un despliegue real define SEED_PASSWORD o SEED_ENABLED=false."
+            )
+        }
+
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
         val restaurant = restaurantRepository.save(
             Restaurant(
                 name = "Maison Noir",
@@ -121,8 +154,13 @@ class DataSeeder(
             userRepository.save(
                 User(
                     email = seed.email,
+<<<<<<< HEAD
                     // Contraseña de demo para todos: "password123"
                     password = passwordEncoder.encode("password123"),
+=======
+                    // Contraseña de demo para todos (configurable con SEED_PASSWORD).
+                    password = passwordEncoder.encode(seedPassword),
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
                     name = seed.name,
                     role = seed.role,
                     restaurant = restaurant
@@ -220,6 +258,13 @@ class DataSeeder(
         }
     }
 
+<<<<<<< HEAD
+=======
+    private companion object {
+        const val DEFAULT_SEED_PASSWORD = "password123"
+    }
+
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     private data class TableSeed(
         val tableNumber: Int,
         val capacity: Int,

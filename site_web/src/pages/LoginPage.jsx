@@ -1,5 +1,9 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import { useNavigate } from "react-router-dom";
+=======
+import { Navigate, useNavigate } from "react-router-dom";
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import { KeyRound, LockKeyhole, Mail, Martini } from "lucide-react";
 import { homePathForRole, useAuth } from "../auth/AuthContext";
 
@@ -17,8 +21,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+<<<<<<< HEAD
   if (isAuthenticated) {
     navigate(homePathForRole(role), { replace: true });
+=======
+  // <Navigate> y no navigate(): llamar a navigate() durante el render lo ignora
+  // React Router, y un usuario con sesion se quedaba en la pantalla de login.
+  if (isAuthenticated) {
+    return <Navigate to={homePathForRole(role)} replace />;
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
   }
 
   const onSubmit = async (event) => {

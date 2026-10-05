@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
@@ -36,6 +37,10 @@ class JwtAuthenticationFilter(
                 
                 SecurityContextHolder.getContext().authentication = authentication
             }
+        } catch (ex: UsernameNotFoundException) {
+            // Token bien firmado de un usuario borrado o dado de baja: la peticion sigue
+            // como anonima (401/403). Es un caso esperado, no un error del servidor.
+            logger.warn("JWT rechazado: ${ex.message}")
         } catch (ex: Exception) {
             logger.error("Could not set user authentication in security context", ex)
         }

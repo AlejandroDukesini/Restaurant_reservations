@@ -33,7 +33,21 @@ RUN gradle bootJar --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+<<<<<<< HEAD
 COPY --from=backend /app/build/libs/*.jar app.jar
+=======
+# Principio de minimo privilegio: sin esto el proceso Java corre como root y
+# cualquier ejecucion de codigo en la aplicacion hereda root dentro del
+# contenedor, lo que facilita la persistencia y el escape hacia el host.
+RUN addgroup -S spring && adduser -S -G spring -h /app spring
+
+COPY --from=backend --chown=spring:spring /app/build/libs/*.jar app.jar
+
+# El generador de sitios escribe en ./generated-websites bajo el WORKDIR.
+RUN mkdir -p /app/generated-websites && chown -R spring:spring /app
+
+USER spring
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 
 # MaxRAMPercentage deja que la JVM se ajuste al limite de memoria del contenedor
 # en lugar de asumir la RAM del host.

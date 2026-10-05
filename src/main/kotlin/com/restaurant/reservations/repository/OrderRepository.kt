@@ -18,6 +18,15 @@ interface OrderRepository : JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.table.restaurant.id = :restaurantId")
     fun findByRestaurantId(@Param("restaurantId") restaurantId: Long): List<Order>
 
+<<<<<<< HEAD
+=======
+    @Query("SELECT o FROM Order o WHERE o.table.restaurant.id = :restaurantId AND o.status = :status")
+    fun findByRestaurantIdAndStatus(
+        @Param("restaurantId") restaurantId: Long,
+        @Param("status") status: OrderStatus
+    ): List<Order>
+
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     // Cola de cocina: pedidos del restaurante que no están terminados/cancelados.
     // JOIN FETCH resuelve en UNA sola consulta todo lo que la cola necesita renderizar
     // (platos, su receta, mesa, restaurante y mesero), eliminando el N+1 que generaba

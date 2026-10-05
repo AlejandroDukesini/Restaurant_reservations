@@ -27,10 +27,13 @@ class CustomUserDetailsService(
         )
     }
     
+    // Se usa en cada peticion con JWT. Exigir active=true revoca el acceso en cuanto
+    // se da de baja a alguien; antes el token seguia valido hasta expirar (QA-SEC-02).
     @Transactional
     fun loadUserById(id: Long): UserDetails {
         val user = userRepository.findById(id)
-            .orElseThrow { UsernameNotFoundException("User not found with id: $id") }
+            .filter { it.active }
+            .orElseThrow { UsernameNotFoundException("User not found or inactive with id: $id") }
         
         return UserPrincipal(
             id = user.id!!,

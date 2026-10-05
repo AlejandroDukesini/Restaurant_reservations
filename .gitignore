@@ -37,9 +37,29 @@ generated-websites/
 # Application
 application-local.yml
 
+<<<<<<< HEAD
+=======
+# Secretos y configuracion local (nunca deben versionarse)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+
+# Informe de auditoria de seguridad
+cibersegurity.txt
+
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 # Node / frontend (site_web)
 node_modules/
 dist/
 .corepack/
 .pnpm-store/
 pnpm-debug.log*
+<<<<<<< HEAD
+=======
+# Reportes de cobertura de Vitest
+coverage/
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e

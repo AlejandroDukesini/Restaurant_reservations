@@ -46,7 +46,12 @@ class ReservationController(
         return ResponseEntity.ok(reservations)
     }
     
+    // Deja de ser anonimo: devolvia nombre del cliente y peticiones especiales
+    // (datos personales) de todas las reservas de una mesa sin autenticacion.
+    // Se mantiene la ruta para no romper clientes existentes; el control pasa a
+    // ser de metodo, que se aplica aunque /api/public/** siga siendo permitAll.
     @GetMapping("/public/tables/{tableId}/reservations")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'COOK')")
     fun getReservationsByTable(@PathVariable tableId: Long): ResponseEntity<List<ReservationResponse>> {
         val reservations = reservationService.getReservationsByTable(tableId)
         return ResponseEntity.ok(reservations)

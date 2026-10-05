@@ -2,16 +2,25 @@ package com.restaurant.reservations.service
 
 import com.restaurant.reservations.dto.OrderRequest
 import com.restaurant.reservations.dto.OrderResponse
+import com.restaurant.reservations.exception.ResourceNotFoundException
+import com.restaurant.reservations.exception.ValidationBusinessException
 import com.restaurant.reservations.model.Order
 import com.restaurant.reservations.model.OrderItem
 import com.restaurant.reservations.model.OrderStatus
+<<<<<<< HEAD
+=======
+import com.restaurant.reservations.model.Role
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import com.restaurant.reservations.repository.MenuItemRepository
 import com.restaurant.reservations.repository.OrderItemRepository
 import com.restaurant.reservations.repository.OrderRepository
 import com.restaurant.reservations.repository.TableRepository
 import com.restaurant.reservations.repository.UserRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
+private const val MAX_ITEMS_PER_ORDER = 100
 
 @Service
 class OrderService(
@@ -23,6 +32,7 @@ class OrderService(
     private val authService: AuthService
 ) {
 
+<<<<<<< HEAD
     @Transactional
     fun createOrder(request: OrderRequest): OrderResponse {
         val employeeId = authService.getCurrentUserId()
@@ -34,11 +44,40 @@ class OrderService(
             .orElseThrow { IllegalArgumentException("Employee not found") }
 
         require(request.items.isNotEmpty()) { "Order must have at least one item" }
+=======
+    private val log = LoggerFactory.getLogger(OrderService::class.java)
+
+    @Transactional
+    fun createOrder(request: OrderRequest): OrderResponse {
+        val employeeId = authService.getCurrentUserId()
+        val restaurantId = currentRestaurantId()
+
+        val table = tableRepository.findById(request.tableId)
+            .orElseThrow { ResourceNotFoundException("Table not found") }
+
+        // La mesa debe ser del restaurante del mesero: sin esto se podian crear
+        // pedidos sobre las mesas de otro restaurante (cross-tenant).
+        requireSameRestaurant(table.restaurant.id, restaurantId, "Table not found")
+
+        val employee = userRepository.findById(employeeId)
+            .orElseThrow { ResourceNotFoundException("Employee not found") }
+
+        require(request.items.isNotEmpty()) { "Order must have at least one item" }
+        require(request.items.size <= MAX_ITEMS_PER_ORDER) {
+            "Order cannot have more than $MAX_ITEMS_PER_ORDER items"
+        }
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 
         // Los platos son de menú (no personalizables): nombre y precio se toman del MenuItem.
         val orderItems = request.items.map { itemRequest ->
             val menuItem = menuItemRepository.findById(itemRequest.menuItemId)
+<<<<<<< HEAD
                 .orElseThrow { IllegalArgumentException("Menu item not found: ${itemRequest.menuItemId}") }
+=======
+                .orElseThrow { ResourceNotFoundException("Menu item not found") }
+            // Un plato de la carta de otro restaurante no puede entrar en este pedido.
+            requireSameRestaurant(menuItem.restaurant.id, restaurantId, "Menu item not found")
+>>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
             OrderItem(
                 order = null, // Will be set after order is saved
                 menuItem = menuItem,
@@ -73,46 +112,87 @@ class OrderService(
     }
     
     fun getOrdersByTable(tableId: Long): List<OrderResponse> {
+        val restaurantId = currentRestaurantId()
+        val table = tableRepository.findById(tableId)
+            .orElseThrow { ResourceNotFoundException("Table not found") }
+        requireSameRestaurant(table.restaurant.id, restaurantId, "Table not found")
         return orderRepository.findByTableId(tableId)
             .map { toResponse(it) }
     }
-    
+
     fun getOrderById(id: Long): OrderResponse {
         val order = orderRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Order not found") }
+            .orElseThrow { ResourceNotFoundException("Order not found") }
+        // Sin este control, un mesero podia leer los pedidos de cualquier otro
+        // restaurante iterando el id (IDOR).
+        requireSameRestaurant(order.table.restaurant.id, currentRestaurantId(), "Order not found")
         return toResponse(order)
     }
-    
+
     @Transactional
     fun updateOrderStatus(id: Long, status: String): OrderResponse {
         val order = orderRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Order not found") }
-        
-        val employeeId = authService.getCurrentUserId()
-        if (order.employee.id != employeeId && authService.getCurrentUserRole().name != "ADMIN") {
-            throw IllegalArgumentException("Unauthorized access to order")
+            .orElseThrow { ResourceNotFoundException("Order not found") }
+
+        requireCanModify(order)
+
+        val newStatus = try {
+            OrderStatus.valueOf(status.uppercase())
+        } catch (ex: IllegalArgumentException) {
+            throw ValidationBusinessException("Invalid order status")
         }
-        
-        val updatedOrder = order.copy(
-            status = OrderStatus.valueOf(status.uppercase())
-        )
-        
+
+        val updatedOrder = order.copy(status = newStatus)
+
         return toResponse(orderRepository.save(updatedOrder))
     }
-    
+
     @Transactional
     fun deleteOrder(id: Long) {
         val order = orderRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Order not found") }
-        
-        val employeeId = authService.getCurrentUserId()
-        if (order.employee.id != employeeId && authService.getCurrentUserRole().name != "ADMIN") {
-            throw IllegalArgumentException("Unauthorized access to order")
-        }
-        
+            .orElseThrow { ResourceNotFoundException("Order not found") }
+
+        requireCanModify(order)
+
+        log.info(
+            "Pedido {} eliminado por userId={} role={}",
+            id, authService.getCurrentUserId(), authService.getCurrentUserRole()
+        )
         orderRepository.delete(order)
     }
-    
+
+    /**
+     * Modificar/borrar un pedido: su autor, o un ADMIN del mismo restaurante.
+     * El chequeo de tenant es obligatorio incluso para ADMIN, porque el rol ADMIN
+     * lo tiene el administrador de cada restaurante, no un superusuario global.
+     */
+    private fun requireCanModify(order: Order) {
+        val restaurantId = currentRestaurantId()
+        requireSameRestaurant(order.table.restaurant.id, restaurantId, "Order not found")
+
+        val employeeId = authService.getCurrentUserId()
+        if (order.employee.id != employeeId && authService.getCurrentUserRole() != Role.ADMIN) {
+            log.warn("Acceso denegado al pedido {}: userId={}", order.id, employeeId)
+            throw ResourceNotFoundException("Order not found")
+        }
+    }
+
+    private fun currentRestaurantId(): Long =
+        authService.getCurrentUserRestaurantId()
+            ?: throw ValidationBusinessException("User not associated with a restaurant")
+
+    private fun requireSameRestaurant(ownerRestaurantId: Long?, callerRestaurantId: Long, message: String) {
+        if (ownerRestaurantId != callerRestaurantId) {
+            log.warn(
+                "Acceso cross-tenant denegado: userId={} (restaurante {}) pidio recurso del restaurante {}",
+                authService.getCurrentUserId(), callerRestaurantId, ownerRestaurantId
+            )
+            // 404 en vez de 403: no confirma la existencia de recursos ajenos.
+            throw ResourceNotFoundException(message)
+        }
+    }
+
+
     private fun toResponse(order: Order): OrderResponse {
         return OrderResponse(
             id = order.id!!,

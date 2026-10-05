@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [Principal, Beta, main]
+  pull_request:
+  workflow_dispatch:
+
+# Solo lectura del repositorio: el pipeline no publica ni despliega nada.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Kotlin + Spring Boot)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # gradle.properties fija org.gradle.java.home a una ruta de Windows que no
+      # existe en el runner; se elimina solo en la copia efimera del CI. Debe ir antes
+      # de setup-gradle, que ya ejecuta gradle al aprovisionar la version.
+      - name: Usar el JDK del runner
+        run: sed -i '/^org.gradle.java.home=/d' gradle.properties
+
+      # El repositorio solo incluye gradlew.bat; se usa la misma version de Gradle
+      # que el wrapper (8.6), igual que hace el Dockerfile.
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: "8.6"
+
+      - name: Compilar, probar y medir cobertura
+        run: gradle build --no-daemon --console=plain
+
+      - name: Publicar reportes de pruebas y cobertura
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: backend-reports
+          path: |
+            build/reports/tests/test
+            build/reports/jacoco/test
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (React + Vite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: site_web
+    steps:
+      - uses: actions/checkout@v5
+
+      # Sin "version": la toma del campo packageManager de site_web/package.json.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: site_web/package.json
+
+      - uses: actions/setup-node@v5
+        with:
+          # jsdom 30 (entorno de Vitest) exige Node >= 22.22.2 o >= 24.15.
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: site_web/pnpm-lock.yaml
+
+      - name: Instalar dependencias (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      - name: Pruebas con cobertura
+        run: pnpm test:coverage
+
+      - name: Build de produccion
+        run: pnpm build
+
+      - name: Publicar cobertura
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: frontend-coverage
+          path: site_web/coverage
+          if-no-files-found: ignore
+
+  docker:
+    name: Imagen Docker (solo build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v5
+      # Valida que el Dockerfile de despliegue (Railway) sigue construyendo. No se publica la imagen.
+      - name: Construir imagen
+        run: docker build --tag restaurant-reservations:ci .

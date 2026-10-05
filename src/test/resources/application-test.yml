@@ -1,0 +1,39 @@
+# Perfil de pruebas: aisla la suite de cualquier PostgreSQL real y de las
+# variables de entorno de despliegue. Solo se activa con @ActiveProfiles("test").
+spring:
+  datasource:
+    # H2 en memoria: cada contexto de Spring arranca con un esquema vacio creado
+    # por Hibernate y lo destruye al cerrarse. No se usa MODE=PostgreSQL porque ese
+    # modo rechaza TINYINT, que el dialecto H2 emplea para los enums ordinales
+    # (Order.status, Reservation.status). Diferencias con PostgreSQL: ver TESTING.md.
+    url: jdbc:h2:mem:reservas-test;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+jwt:
+  # Clave sintetica exclusiva de la suite (>= 64 bytes para HS512). No es un secreto real.
+  secret: test-only-signing-key-0123456789-abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOP
+  expiration: 3600000
+
+app:
+  generated-websites-path: ./build/test-generated-websites
+  seed:
+    # Cada prueba crea sus propios datos; la siembra se prueba aparte.
+    enabled: false
+  rate-limit:
+    # El limitador se prueba de forma aislada (RateLimitingFilterTest); aqui
+    # impediria ejecutar varias peticiones de login seguidas desde 127.0.0.1.
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    org.springframework.security: WARN
