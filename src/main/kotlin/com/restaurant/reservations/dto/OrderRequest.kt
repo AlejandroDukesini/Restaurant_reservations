@@ -1,15 +1,11 @@
 package com.restaurant.reservations.dto
 
-<<<<<<< HEAD
-import jakarta.validation.constraints.Min
-=======
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 
 data class OrderRequest(
     @field:NotNull
@@ -27,13 +23,6 @@ data class OrderRequest(
 )
 
 data class OrderItemRequest(
-<<<<<<< HEAD
-    val menuItemId: Long,
-
-    @field:Min(1)
-    val quantity: Int,
-
-=======
     @field:NotNull
     val menuItemId: Long,
 
@@ -44,6 +33,5 @@ data class OrderItemRequest(
     val quantity: Int,
 
     @field:Size(max = 500)
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     val notes: String? = null
 )

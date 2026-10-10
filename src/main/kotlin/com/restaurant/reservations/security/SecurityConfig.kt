@@ -12,11 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-<<<<<<< HEAD
-=======
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy
 import org.springframework.security.web.header.writers.StaticHeadersWriter
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import org.springframework.web.cors.CorsConfigurationSource
 
 @Configuration
@@ -44,13 +41,10 @@ class SecurityConfig(
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .cors { it.configurationSource(corsConfigurationSource) }
-<<<<<<< HEAD
-=======
             // CSRF deshabilitado de forma segura: la sesion es STATELESS y la
             // credencial viaja en la cabecera Authorization, que el navegador no
             // adjunta automaticamente en peticiones cross-site. Si algun dia se
             // pasa el token a una cookie, CSRF debe volver a activarse.
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
             .csrf { it.disable() }
             .headers { headers ->
                 // Defensa en profundidad del navegador: sin CSP, cualquier XSS

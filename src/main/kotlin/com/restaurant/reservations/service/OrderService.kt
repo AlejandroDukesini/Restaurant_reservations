@@ -7,10 +7,7 @@ import com.restaurant.reservations.exception.ValidationBusinessException
 import com.restaurant.reservations.model.Order
 import com.restaurant.reservations.model.OrderItem
 import com.restaurant.reservations.model.OrderStatus
-<<<<<<< HEAD
-=======
 import com.restaurant.reservations.model.Role
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import com.restaurant.reservations.repository.MenuItemRepository
 import com.restaurant.reservations.repository.OrderItemRepository
 import com.restaurant.reservations.repository.OrderRepository
@@ -32,19 +29,6 @@ class OrderService(
     private val authService: AuthService
 ) {
 
-<<<<<<< HEAD
-    @Transactional
-    fun createOrder(request: OrderRequest): OrderResponse {
-        val employeeId = authService.getCurrentUserId()
-
-        val table = tableRepository.findById(request.tableId)
-            .orElseThrow { IllegalArgumentException("Table not found") }
-
-        val employee = userRepository.findById(employeeId)
-            .orElseThrow { IllegalArgumentException("Employee not found") }
-
-        require(request.items.isNotEmpty()) { "Order must have at least one item" }
-=======
     private val log = LoggerFactory.getLogger(OrderService::class.java)
 
     @Transactional
@@ -66,18 +50,13 @@ class OrderService(
         require(request.items.size <= MAX_ITEMS_PER_ORDER) {
             "Order cannot have more than $MAX_ITEMS_PER_ORDER items"
         }
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 
         // Los platos son de menú (no personalizables): nombre y precio se toman del MenuItem.
         val orderItems = request.items.map { itemRequest ->
             val menuItem = menuItemRepository.findById(itemRequest.menuItemId)
-<<<<<<< HEAD
-                .orElseThrow { IllegalArgumentException("Menu item not found: ${itemRequest.menuItemId}") }
-=======
                 .orElseThrow { ResourceNotFoundException("Menu item not found") }
             // Un plato de la carta de otro restaurante no puede entrar en este pedido.
             requireSameRestaurant(menuItem.restaurant.id, restaurantId, "Menu item not found")
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
             OrderItem(
                 order = null, // Will be set after order is saved
                 menuItem = menuItem,

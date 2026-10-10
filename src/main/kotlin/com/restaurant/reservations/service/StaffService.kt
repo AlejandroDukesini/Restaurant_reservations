@@ -33,12 +33,8 @@ class StaffService(
         val restaurant = restaurantRepository.findById(restaurantId)
             .orElseThrow { IllegalArgumentException("Restaurant not found") }
 
-<<<<<<< HEAD
-        if (userRepository.findByEmail(request.email).isPresent) {
-=======
         val email = normalizeEmail(request.email)
         if (userRepository.findByEmail(email).isPresent) {
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
             throw IllegalArgumentException("Email already registered")
         }
 
@@ -46,11 +42,7 @@ class StaffService(
             ?: throw IllegalArgumentException("Password is required")
 
         val user = User(
-<<<<<<< HEAD
-            email = request.email,
-=======
             email = email,
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
             password = passwordEncoder.encode(password),
             name = request.name,
             role = parseStaffRole(request.role),
@@ -70,23 +62,16 @@ class StaffService(
             throw IllegalArgumentException("User is not a staff member")
         }
 
-<<<<<<< HEAD
-=======
         val email = normalizeEmail(request.email)
         if (email != user.email && userRepository.findByEmail(email).isPresent) {
             throw IllegalArgumentException("Email already registered")
         }
 
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
         val newPassword = request.password?.takeIf { it.isNotBlank() }
 
         val updated = user.copy(
             name = request.name,
-<<<<<<< HEAD
-            email = request.email,
-=======
             email = email,
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
             role = parseStaffRole(request.role),
             active = request.active,
             password = newPassword?.let { passwordEncoder.encode(it) } ?: user.password
@@ -106,13 +91,10 @@ class StaffService(
         authService.getCurrentUserRestaurantId()
             ?: throw IllegalArgumentException("User not associated with a restaurant")
 
-<<<<<<< HEAD
-=======
     // El login busca el email en minusculas y sin espacios (AuthService.login): si aqui
     // se guardaba tal cual, una cuenta creada con mayusculas no podia iniciar sesion.
     private fun normalizeEmail(value: String): String = value.trim().lowercase()
 
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     private fun parseStaffRole(value: String): Role {
         val role = try {
             Role.valueOf(value.uppercase())

@@ -12,17 +12,12 @@ spring:
       mode: never
   jpa:
     hibernate:
-<<<<<<< HEAD
-      ddl-auto: update
-    show-sql: ${JPA_SHOW_SQL:true}
-=======
       # En produccion debe fijarse JPA_DDL_AUTO=validate y migrar el esquema con
       # una herramienta versionada (Flyway/Liquibase): 'update' deja que la app
       # altere el esquema en caliente, lo que amplifica cualquier RCE o error.
       ddl-auto: ${JPA_DDL_AUTO:update}
     # El SQL en consola filtra estructura y datos a los logs: apagado por defecto.
     show-sql: ${JPA_SHOW_SQL:false}
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -35,12 +30,6 @@ server:
   # Railway inyecta PORT y espera que el contenedor escuche ahi.
   # En local se mantiene 8081 para evitar el choque con Apache/XAMPP.
   port: ${PORT:8081}
-<<<<<<< HEAD
-
-jwt:
-  # HS512 requiere una clave de al menos 512 bits (>= 64 bytes).
-  secret: ${JWT_SECRET:maison-noir-jwt-signing-secret-key-hs512-minimum-512-bits-must-be-64plus-bytes-2026}
-=======
   error:
     # No exponer stacktrace ni mensaje interno en las paginas de error de Spring.
     include-stacktrace: never
@@ -62,7 +51,6 @@ jwt:
   # cualquiera que lea el codigo firmar tokens validos de administrador.
   # Si no se define, JwtTokenProvider genera una clave efimera y avisa por log.
   secret: ${JWT_SECRET:}
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
   expiration: ${JWT_EXPIRATION:86400000}
 
 app:

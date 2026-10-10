@@ -8,10 +8,7 @@ import com.restaurant.reservations.model.RestaurantTable
 import com.restaurant.reservations.repository.RestaurantRepository
 import com.restaurant.reservations.repository.TableRepository
 import com.restaurant.reservations.repository.ZoneRepository
-<<<<<<< HEAD
-=======
 import org.slf4j.LoggerFactory
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -92,14 +89,6 @@ class TableService(
                 .orElseThrow { ResourceNotFoundException("Zone not found for restaurant") }
         }
 
-<<<<<<< HEAD
-        val zone = request.zoneId?.let {
-            zoneRepository.findByIdAndRestaurantId(it, restaurantId!!)
-                .orElseThrow { IllegalArgumentException("Zone not found for restaurant") }
-        }
-        
-=======
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
         val updatedTable = table.copy(
             tableNumber = request.tableNumber,
             name = request.name,

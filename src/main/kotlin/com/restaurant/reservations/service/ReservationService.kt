@@ -17,10 +17,7 @@ import com.restaurant.reservations.model.User
 import com.restaurant.reservations.repository.ReservationRepository
 import com.restaurant.reservations.repository.TableRepository
 import com.restaurant.reservations.repository.UserRepository
-<<<<<<< HEAD
-=======
 import org.slf4j.LoggerFactory
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -37,10 +34,7 @@ class ReservationService(
     private val passwordEncoder: PasswordEncoder,
     private val authService: AuthService
 ) {
-<<<<<<< HEAD
-=======
     private val log = LoggerFactory.getLogger(ReservationService::class.java)
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     private val blockingStatuses = listOf(ReservationStatus.PENDING, ReservationStatus.CONFIRMED)
     private val reservationSlotHours = 2L
     
@@ -168,10 +162,7 @@ class ReservationService(
     fun getReservationById(id: Long): ReservationResponse {
         val reservation = reservationRepository.findById(id)
             .orElseThrow { ResourceNotFoundException("Reservation not found") }
-<<<<<<< HEAD
-=======
         requireCanAccess(reservation)
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
         return toResponse(reservation)
     }
 
@@ -184,9 +175,6 @@ class ReservationService(
         requireCanAccess(reservation)
 
         val table = tableRepository.findById(request.tableId)
-<<<<<<< HEAD
-            .orElseThrow { IllegalArgumentException("Table not found") }
-=======
             .orElseThrow { ResourceNotFoundException("Table not found") }
 
         // La mesa destino debe pertenecer al mismo restaurante que la reserva original:
@@ -194,7 +182,6 @@ class ReservationService(
         if (table.restaurant.id != reservation.table.restaurant.id) {
             throw ValidationBusinessException("Table belongs to a different restaurant")
         }
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 
         if (request.numberOfGuests > table.capacity) {
             throw IllegalArgumentException("Number of guests exceeds table capacity")
@@ -258,9 +245,6 @@ class ReservationService(
         )
         reservationRepository.delete(reservation)
     }
-<<<<<<< HEAD
-    
-=======
 
     /**
      * Autorizacion a nivel de objeto (evita IDOR):
@@ -300,7 +284,6 @@ class ReservationService(
     }
 
 
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     private fun validateTableAvailability(
         table: com.restaurant.reservations.model.RestaurantTable,
         numberOfGuests: Int,

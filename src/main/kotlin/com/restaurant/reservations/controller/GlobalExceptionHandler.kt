@@ -4,14 +4,6 @@ import com.restaurant.reservations.exception.BusinessException
 import com.restaurant.reservations.exception.ReservationConflictException
 import com.restaurant.reservations.exception.ResourceNotFoundException
 import jakarta.validation.ConstraintViolationException
-<<<<<<< HEAD
-import org.springframework.dao.OptimisticLockingFailureException
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.MethodArgumentNotValidException
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.RestControllerAdvice
-=======
 import org.slf4j.LoggerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.HttpStatus
@@ -27,7 +19,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.util.UUID
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 
 data class ApiErrorResponse(
     val status: Int,
@@ -38,8 +29,6 @@ data class ApiErrorResponse(
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
-<<<<<<< HEAD
-=======
 
     private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
@@ -58,7 +47,6 @@ class GlobalExceptionHandler {
         return error(HttpStatus.UNAUTHORIZED, "Invalid credentials")
     }
 
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     @ExceptionHandler(ResourceNotFoundException::class)
     fun handleNotFound(exception: ResourceNotFoundException): ResponseEntity<ApiErrorResponse> {
         return error(HttpStatus.NOT_FOUND, exception.message ?: "Resource not found")
@@ -96,11 +84,6 @@ class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "Validation failed", details)
     }
 
-<<<<<<< HEAD
-    @ExceptionHandler(Exception::class)
-    fun handleUnexpected(exception: Exception): ResponseEntity<ApiErrorResponse> {
-        return error(HttpStatus.INTERNAL_SERVER_ERROR, exception.message ?: "Unexpected server error")
-=======
     // Errores del cliente que Spring lanza antes de llegar al controlador. Sin estos
     // handlers caian en handleUnexpected: respondian 500 y se registraban como error
     // del servidor (JSON mal formado, parametro ausente, id no numerico, ruta inexistente).
@@ -137,7 +120,6 @@ class GlobalExceptionHandler {
         val errorId = UUID.randomUUID().toString()
         log.error("Error no controlado [{}]", errorId, exception)
         return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error (ref: $errorId)")
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
     }
 
     private fun error(

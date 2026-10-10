@@ -3,26 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-<<<<<<< HEAD
-  "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173",
-    "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 4173"
-  },
-  "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "react-router-dom": "latest",
-    "lucide-react": "latest"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "latest",
-    "tailwindcss": "latest",
-    "postcss": "latest",
-    "autoprefixer": "latest"
-=======
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20.19.0"
@@ -54,6 +34,5 @@
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.2",
     "vitest": "^5.0.3"
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
   }
 }

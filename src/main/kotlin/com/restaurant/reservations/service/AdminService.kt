@@ -75,68 +75,7 @@ class AdminService(
                     status = item.status.name,
                     notes = item.notes
                 )
-<<<<<<< HEAD
-            }
-    }
-    
-    fun getAllOrders(): List<OrderResponse> {
-        return orderRepository.findAll()
-            .map { order ->
-                OrderResponse(
-                    id = order.id!!,
-                    tableId = order.table.id!!,
-                    tableNumber = order.table.tableNumber,
-                    employeeId = order.employee.id!!,
-                    employeeName = order.employee.name,
-                    orderDate = order.orderDate,
-                    status = order.status.name,
-                    totalAmount = order.totalAmount,
-                    items = order.items.map { item ->
-                        com.restaurant.reservations.dto.OrderItemResponse(
-                            id = item.id!!,
-                            menuItemId = item.menuItem?.id,
-                            itemName = item.itemName,
-                            quantity = item.quantity,
-                            price = item.price,
-                            status = item.status.name,
-                            notes = item.notes
-                        )
-                    },
-                    notes = order.notes
-                )
-            }
-    }
-    
-    fun getActiveOrders(): List<OrderResponse> {
-        return orderRepository.findByStatus(com.restaurant.reservations.model.OrderStatus.IN_PROGRESS)
-            .map { order ->
-                OrderResponse(
-                    id = order.id!!,
-                    tableId = order.table.id!!,
-                    tableNumber = order.table.tableNumber,
-                    employeeId = order.employee.id!!,
-                    employeeName = order.employee.name,
-                    orderDate = order.orderDate,
-                    status = order.status.name,
-                    totalAmount = order.totalAmount,
-                    items = order.items.map { item ->
-                        com.restaurant.reservations.dto.OrderItemResponse(
-                            id = item.id!!,
-                            menuItemId = item.menuItem?.id,
-                            itemName = item.itemName,
-                            quantity = item.quantity,
-                            price = item.price,
-                            status = item.status.name,
-                            notes = item.notes
-                        )
-                    },
-                    notes = order.notes
-                )
-            }
-    }
-=======
             },
             notes = order.notes
         )
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 }
