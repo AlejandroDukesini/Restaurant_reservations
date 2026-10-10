@@ -51,10 +51,10 @@ notas de preparación) se define una vez y el cocinero la consulta desde la cola
   `engines`). El campo `packageManager` fija **pnpm 9.15.9**; Corepack (incluido en Node) lo usa
   automáticamente con `corepack pnpm …` o tras `corepack enable`.
 
-> **Qué se entrega:** una aplicación **web** (SPA React servida por el backend o por Vite) y una API
-> REST. El repositorio **no** contiene una PWA (no hay `manifest.webmanifest` ni service worker, así
-> que no se puede "instalar" desde el navegador) ni una app **Android**. Una app Android nativa sería un proyecto
-> aparte (Kotlin + Android Gradle Plugin) que consumiría esta misma API `/api`.
+> **Qué se entrega:** una aplicación **web** (SPA React servida por el backend o por Vite), una API
+> REST y una app **Android nativa** en Kotlin (`android/`) que consume la misma API.
+> ⚠️ **La app Android está PENDIENTE DE VERIFICAR**: ver [App Android](#5-app-android-kotlin--pendiente-de-verificar).
+> No hay PWA (sin `manifest.webmanifest` ni service worker).
 
 ---
 
@@ -131,6 +131,61 @@ corepack pnpm dev
 
 Abre `http://localhost:5173`. El servidor de Vite hace _proxy_ de `/api` hacia el backend en
 `http://localhost:8081`, así que el backend debe estar en marcha.
+
+### 5. App Android (Kotlin) — PENDIENTE DE VERIFICAR
+
+> **Estado: código escrito pero NO compilado, NO probado y NO ejecutado en un emulador o
+> dispositivo.** Se programó en un equipo sin Android SDK. Hasta completar la lista de
+> verificación de abajo, debe tratarse como un borrador: puede haber errores de compilación, de
+> versiones de librerías o de interfaz. El job `android` del CI es la primera compilación real.
+
+Proyecto independiente en `android/` (no forma parte del build del backend ni de la imagen Docker).
+
+| | |
+| --- | --- |
+| Lenguaje / UI | Kotlin 2.0, Jetpack Compose (Material 3) |
+| Red | Retrofit 2.11 + OkHttp 4.12 + kotlinx.serialization; tiempo de espera de 15 s, como la web |
+| Sesión | JWT en `EncryptedSharedPreferences` (clave en el Android Keystore); se confirma con `GET /api/auth/me` al abrir la app; un 401 cierra la sesión |
+| Build | Android Gradle Plugin 8.6.1, Gradle 8.9, `compileSdk`/`targetSdk` 35, `minSdk` 26 (Android 8.0), JDK 17 |
+
+Pantallas por rol, con los mismos endpoints y permisos que la web (el servidor sigue decidiendo):
+
+- **Mesero (EMPLOYEE):** mesas por zona → pedido con el menú (carga y reintento propios), total, envío a cocina, pedidos de la mesa y borrado.
+- **Cocina (COOK):** cola de platos con receta, «Preparando» / «Listo», refresco automático cada 15 s.
+- **Administrador (ADMIN):** las dos anteriores más **Reservas** (filtros, confirmar, cancelar).
+  El alta de reservas y el resto del panel de administración solo están en la web.
+
+**Abrir y ejecutar** (requiere [Android Studio](https://developer.android.com/studio), que trae el SDK y un JDK compatible):
+
+1. Arrancar el backend en local (`.\gradlew.bat bootRun`, puerto 8081).
+2. En Android Studio: *File → Open* → carpeta `android/`. Dejar que sincronice Gradle.
+3. Crear un emulador (*Device Manager*) y pulsar *Run*. La variante **debug** apunta a
+   `http://10.0.2.2:8081/` (el `localhost` del PC visto desde el emulador). Para un teléfono físico
+   en la misma red, cambiar `API_BASE_URL` de `debug` en `android/app/build.gradle.kts` por la IP del PC.
+4. Entrar con una cuenta de demostración (p. ej. `mesero1@maisonnoir.com`).
+
+Por línea de comandos (con `ANDROID_HOME` definido y un JDK 17 o 21; Gradle 8.9 no arranca con JDK 25):
+
+```bash
+cd android
+./gradlew assembleDebug testDebugUnitTest   # APK en app/build/outputs/apk/debug/
+./gradlew assembleRelease -PreservasApiUrl=https://<tu-app>.up.railway.app/
+```
+
+La variante **release** solo admite HTTPS y no está firmada: falta configurar la firma (`signingConfigs`)
+antes de distribuirla.
+
+**Lista de verificación pendiente** (marcar al completarla y entonces quitar el aviso):
+
+- [ ] `./gradlew assembleDebug` compila sin errores (versiones de AGP/Kotlin/Compose compatibles).
+- [ ] `./gradlew testDebugUnitTest` pasa (`DomainTest.kt`, `ApiErrorsTest.kt`).
+- [ ] Login con cada rol; credenciales incorrectas muestran el mensaje; usuario desactivado no entra.
+- [ ] Cerrar y reabrir la app conserva la sesión; con el backend apagado aparece «Reintentar»; un token revocado vuelve al login.
+- [ ] Mesero: mesas, menú (carga, error y reintento), crear y borrar un pedido.
+- [ ] Cocina: la cola se actualiza, «Preparando» y «Listo» cambian el estado.
+- [ ] Admin: reservas, filtros, confirmar y cancelar.
+- [ ] Rotar la pantalla y cambiar de usuario sin ver datos del anterior.
+- [ ] Release contra el backend de Railway por HTTPS.
 
 ---
 
@@ -294,6 +349,7 @@ reservas/
 ├── src/test/
 │   ├── java/.../     # Pruebas unitarias y de integración (JUnit 5 + MockMvc)
 │   └── resources/application-test.yml   # Perfil de pruebas (H2, sin siembra)
+├── android/          # App Android nativa (Kotlin + Compose) — PENDIENTE DE VERIFICAR
 ├── site_web/         # Frontend React (Vite + Tailwind)
 │   ├── src/
 │   │   ├── api/          # Cliente HTTP y módulos por recurso
@@ -375,6 +431,7 @@ configura `SEED_PASSWORD` / `SEED_ENABLED` (QA-SEC-04).
 
 ## Limitaciones conocidas
 
+- La app Android (`android/`) no se ha compilado ni probado todavía (ver su sección).
 - La gestión de reservas está en el panel de administración (pestaña *Reservas*); el mesero no
   tiene vista de reservas porque la API no expone un listado por restaurante para ese rol.
 - Los estados de pedido y reserva se guardan como ordinal (QA-DATA-01).

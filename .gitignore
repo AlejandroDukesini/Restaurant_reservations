@@ -57,3 +57,10 @@ dist/
 pnpm-debug.log*
 # Reportes de cobertura de Vitest
 coverage/
+
+# Android (proyecto android/)
+local.properties
+.cxx/
+*.apk
+*.aab
+*.keystore

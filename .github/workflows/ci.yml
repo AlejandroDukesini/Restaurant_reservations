@@ -102,6 +102,37 @@ jobs:
           path: site_web/coverage
           if-no-files-found: ignore
 
+  android:
+    name: Android (Kotlin + Compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v5
+
+      # AGP 8.6 requiere JDK 17+; ubuntu-latest ya trae el Android SDK (ANDROID_HOME).
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Compilar la variante debug y ejecutar las pruebas unitarias
+        run: ./gradlew assembleDebug testDebugUnitTest --no-daemon --console=plain
+
+      - name: Publicar APK debug y reportes
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: android-debug
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/reports/tests
+          if-no-files-found: ignore
+
   docker:
     name: Imagen Docker (solo build)
     runs-on: ubuntu-latest
