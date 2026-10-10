@@ -1,13 +1,14 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { homePathForRole, useAuth } from "./auth/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute, { SessionGate } from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import FloorPage from "./pages/FloorPage";
 import KitchenPage from "./pages/KitchenPage";
 import AdminPage from "./pages/AdminPage";
 
 function RootRedirect() {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, status } = useAuth();
+  if (status !== "ready") return <SessionGate />;
   return <Navigate to={isAuthenticated ? homePathForRole(role) : "/login"} replace />;
 }
 

@@ -2,13 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Minus, Plus, Send, Trash2, Utensils } from "lucide-react";
 import Layout from "../components/Layout";
 import FloorMap from "../components/FloorMap";
+import { ErrorState, Loader } from "../components/LoadState";
 import { fetchTables } from "../api/tableApi";
 import { fetchMenu } from "../api/menuApi";
 import { createOrder, deleteOrder, fetchOrdersByTable } from "../api/orderApi";
 import { CATEGORY_LABEL, ITEM_STATUS, ORDER_STATUS, money } from "../utils/status";
 
 export default function FloorPage() {
-  const [tables, setTables] = useState([]);
+  const [tables, setTables] = useState(null); // null = aún sin primera carga
+  const [tablesError, setTablesError] = useState("");
   const [menu, setMenu] = useState([]);
   const [selectedTableId, setSelectedTableId] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -16,16 +18,17 @@ export default function FloorPage() {
   const [status, setStatus] = useState("");
 
   const selectedTable = useMemo(
-    () => tables.find((t) => t.id === selectedTableId) || null,
+    () => tables?.find((t) => t.id === selectedTableId) || null,
     [tables, selectedTableId]
   );
 
   const loadTables = useCallback(async () => {
+    setTablesError("");
     try {
       const data = await fetchTables();
       setTables(data);
     } catch (err) {
-      setStatus(err.message);
+      setTablesError(err.message);
     }
   }, []);
 
@@ -103,11 +106,17 @@ export default function FloorPage() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <FloorMap
-          tables={tables}
-          selectedTableId={selectedTableId}
-          onSelect={setSelectedTableId}
-        />
+        {tables ? (
+          <FloorMap
+            tables={tables}
+            selectedTableId={selectedTableId}
+            onSelect={setSelectedTableId}
+          />
+        ) : tablesError ? (
+          <ErrorState message={tablesError} onRetry={loadTables} />
+        ) : (
+          <Loader label="Cargando el mapa de mesas..." />
+        )}
 
         <aside className="motion-enter zone-band h-fit" style={{ "--i": 2 }}>
           {!selectedTable ? (

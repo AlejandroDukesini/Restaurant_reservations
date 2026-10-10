@@ -82,6 +82,8 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { authz ->
                 authz
+                    // /me valida el token guardado por el SPA; el resto de /api/auth es publico.
+                    .requestMatchers("/api/auth/me").authenticated()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/public/**").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")

@@ -10,11 +10,12 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-/** Contrato y reglas de seguridad de /api/auth (registro y login). */
+/** Contrato y reglas de seguridad de /api/auth (registro, login y sesion actual). */
 class AuthApiIntegrationTest : IntegrationTest() {
 
     @Autowired private lateinit var userRepository: UserRepository
@@ -126,5 +127,26 @@ class AuthApiIntegrationTest : IntegrationTest() {
     fun `cuerpo sin campos obligatorios responde 400`() {
         mockMvc.perform(post("/api/auth/login").json("{}"))
             .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `me devuelve el usuario y el rol vigentes del token`() {
+        val restaurant = data.restaurant()
+        val cook = data.user(Role.COOK, restaurant, email = "chef@example.test")
+
+        mockMvc.perform(get("/api/auth/me").authAs(cook))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.userId").value(cook.id!!))
+            .andExpect(jsonPath("$.email").value("chef@example.test"))
+            .andExpect(jsonPath("$.role").value("COOK"))
+            .andExpect(jsonPath("$.restaurantId").value(restaurant.id!!))
+    }
+
+    @Test
+    fun `me sin token o con usuario dado de baja responde 401`() {
+        val inactive = data.user(Role.EMPLOYEE, data.restaurant(), email = "baja@example.test", active = false)
+
+        mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized)
+        mockMvc.perform(get("/api/auth/me").authAs(inactive)).andExpect(status().isUnauthorized)
     }
 }

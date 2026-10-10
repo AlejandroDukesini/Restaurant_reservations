@@ -3,6 +3,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import Modal from "./Modal";
 import { createMenuItem, deleteMenuItem, fetchMenu, updateMenuItem } from "../../api/menuApi";
 import { CATEGORY_LABEL, money } from "../../utils/status";
+import { ErrorState, Loader } from "../LoadState";
 
 const EMPTY = {
   name: "",
@@ -18,12 +19,13 @@ const EMPTY = {
 const CATEGORIES = ["STARTER", "MAIN", "DESSERT", "DRINK"];
 
 export default function MenuAdmin() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(null); // null = aún sin primera carga
   const [status, setStatus] = useState("");
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
 
   const load = async () => {
+    setStatus("");
     try {
       setItems(await fetchMenu());
     } catch (err) {
@@ -107,40 +109,48 @@ export default function MenuAdmin() {
         </button>
       </div>
 
-      {status && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
+      {status && items && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {items.map((item, index) => (
-          <article
+      {!items ? (
+        status ? (
+          <ErrorState message={status} onRetry={load} />
+        ) : (
+          <Loader label="Cargando el menú..." />
+        )
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((item, index) => (
+            <article
               key={item.id}
               className="motion-enter card-lift zone-band"
               style={{ "--i": index }}
             >
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <div>
-                <h3 className="text-base font-semibold text-champagne">{item.name}</h3>
-                <p className="text-xs text-zinc-500">
-                  {CATEGORY_LABEL[item.category] || item.category} · {money(item.price)}
-                </p>
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-base font-semibold text-champagne">{item.name}</h3>
+                  <p className="text-xs text-zinc-500">
+                    {CATEGORY_LABEL[item.category] || item.category} · {money(item.price)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => openEdit(item)} className="text-zinc-400 hover:text-champagne">
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button type="button" onClick={() => remove(item.id)} className="text-zinc-400 hover:text-red-400">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => openEdit(item)} className="text-zinc-400 hover:text-champagne">
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={() => remove(item.id)} className="text-zinc-400 hover:text-red-400">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+              <div className="space-y-1 border-t border-white/10 pt-2 text-xs text-zinc-400">
+                {item.protein && <p><span className="text-gold">Proteína:</span> {item.protein}</p>}
+                {item.condiments && <p><span className="text-gold">Condimentos:</span> {item.condiments}</p>}
+                {item.ingredients && <p><span className="text-gold">Ingredientes:</span> {item.ingredients}</p>}
               </div>
-            </div>
-            <div className="space-y-1 border-t border-white/10 pt-2 text-xs text-zinc-400">
-              {item.protein && <p><span className="text-gold">Proteína:</span> {item.protein}</p>}
-              {item.condiments && <p><span className="text-gold">Condimentos:</span> {item.condiments}</p>}
-              {item.ingredients && <p><span className="text-gold">Ingredientes:</span> {item.ingredients}</p>}
-            </div>
-          </article>
-        ))}
-        {items.length === 0 && <p className="motion-fade text-sm text-zinc-500">Sin platos en el menú.</p>}
-      </div>
+            </article>
+          ))}
+          {items.length === 0 && <p className="motion-fade text-sm text-zinc-500">Sin platos en el menú.</p>}
+        </div>
+      )}
 
       {editing && (
         <Modal title={editing.id ? "Editar plato" : "Nuevo plato"} onClose={() => setEditing(null)}>

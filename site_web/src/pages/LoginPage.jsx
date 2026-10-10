@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { KeyRound, LockKeyhole, Mail, Martini } from "lucide-react";
+import { KeyRound, LoaderCircle, LockKeyhole, Mail, Martini } from "lucide-react";
 import { homePathForRole, useAuth } from "../auth/AuthContext";
 
 const DEMO_ACCOUNTS = [
@@ -102,7 +102,11 @@ export default function LoginPage() {
             disabled={loading}
             className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-gold/60 bg-metal px-5 py-3 font-semibold text-carbon shadow-gold transition hover:brightness-110 disabled:opacity-60"
           >
-            <KeyRound className="h-4 w-4" />
+            {loading ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <KeyRound className="h-4 w-4" />
+            )}
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>

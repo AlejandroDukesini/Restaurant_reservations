@@ -3,6 +3,7 @@ import { Move, Pencil, Plus, Trash2 } from "lucide-react";
 import Modal from "./Modal";
 import { createTable, deleteTable, fetchTables, updateTable } from "../../api/tableApi";
 import { money } from "../../utils/status";
+import { ErrorState, Loader } from "../LoadState";
 
 const EMPTY = {
   tableNumber: "",
@@ -16,12 +17,13 @@ const EMPTY = {
 };
 
 export default function TablesAdmin() {
-  const [tables, setTables] = useState([]);
+  const [tables, setTables] = useState(null); // null = aún sin primera carga
   const [status, setStatus] = useState("");
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
 
   const load = async () => {
+    setStatus("");
     try {
       setTables(await fetchTables());
     } catch (err) {
@@ -36,14 +38,14 @@ export default function TablesAdmin() {
   // Zonas disponibles derivadas de las mesas existentes.
   const zones = useMemo(() => {
     const map = new Map();
-    tables.forEach((t) => {
+    (tables ?? []).forEach((t) => {
       if (t.zoneId != null) map.set(t.zoneId, t.zoneName);
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [tables]);
 
   const openCreate = () => {
-    const nextNumber = tables.reduce((max, t) => Math.max(max, t.tableNumber), 0) + 1;
+    const nextNumber = (tables ?? []).reduce((max, t) => Math.max(max, t.tableNumber), 0) + 1;
     setForm({ ...EMPTY, tableNumber: nextNumber });
     setEditing({});
   };
@@ -124,56 +126,64 @@ export default function TablesAdmin() {
         </button>
       </div>
 
-      {status && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
+      {status && tables && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
 
-      <div className="overflow-x-auto border border-white/10">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-white/[.04] text-xs uppercase tracking-wider text-zinc-400">
-            <tr>
-              <th className="px-4 py-3">#</th>
-              <th className="px-4 py-3">Nombre</th>
-              <th className="px-4 py-3">Zona</th>
-              <th className="px-4 py-3">Cap.</th>
-              <th className="px-4 py-3">Precio</th>
-              <th className="px-4 py-3">Posición</th>
-              <th className="px-4 py-3 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tables.map((t, index) => (
-              <tr key={t.id} className="motion-fade border-t border-white/5" style={{ "--i": index }}>
-                <td className="px-4 py-3 text-champagne">{t.tableNumber}</td>
-                <td className="px-4 py-3 text-zinc-300">{t.name || "—"}</td>
-                <td className="px-4 py-3 text-zinc-300">{t.zoneName || "—"}</td>
-                <td className="px-4 py-3 text-zinc-300">{t.capacity}</td>
-                <td className="px-4 py-3 text-zinc-300">{money(t.price)}</td>
-                <td className="px-4 py-3 text-zinc-400">
-                  <span className="inline-flex items-center gap-1">
-                    <Move className="h-3.5 w-3.5" /> {t.gridX},{t.gridY}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => openEdit(t)} className="text-zinc-400 hover:text-champagne">
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button type="button" onClick={() => remove(t.id)} className="text-zinc-400 hover:text-red-400">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {tables.length === 0 && (
+      {!tables ? (
+        status ? (
+          <ErrorState message={status} onRetry={load} />
+        ) : (
+          <Loader label="Cargando mesas..." />
+        )
+      ) : (
+        <div className="overflow-x-auto border border-white/10">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white/[.04] text-xs uppercase tracking-wider text-zinc-400">
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-zinc-500">
-                  Sin mesas registradas.
-                </td>
+                <th className="px-4 py-3">#</th>
+                <th className="px-4 py-3">Nombre</th>
+                <th className="px-4 py-3">Zona</th>
+                <th className="px-4 py-3">Cap.</th>
+                <th className="px-4 py-3">Precio</th>
+                <th className="px-4 py-3">Posición</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {tables.map((t, index) => (
+                <tr key={t.id} className="motion-fade border-t border-white/5" style={{ "--i": index }}>
+                  <td className="px-4 py-3 text-champagne">{t.tableNumber}</td>
+                  <td className="px-4 py-3 text-zinc-300">{t.name || "—"}</td>
+                  <td className="px-4 py-3 text-zinc-300">{t.zoneName || "—"}</td>
+                  <td className="px-4 py-3 text-zinc-300">{t.capacity}</td>
+                  <td className="px-4 py-3 text-zinc-300">{money(t.price)}</td>
+                  <td className="px-4 py-3 text-zinc-400">
+                    <span className="inline-flex items-center gap-1">
+                      <Move className="h-3.5 w-3.5" /> {t.gridX},{t.gridY}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <button type="button" onClick={() => openEdit(t)} className="text-zinc-400 hover:text-champagne">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button type="button" onClick={() => remove(t.id)} className="text-zinc-400 hover:text-red-400">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {tables.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-6 text-center text-zinc-500">
+                    Sin mesas registradas.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {editing && (
         <Modal title={editing.id ? "Editar mesa" : "Nueva mesa"} onClose={() => setEditing(null)}>

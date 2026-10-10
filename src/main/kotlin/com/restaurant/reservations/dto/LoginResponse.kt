@@ -8,3 +8,11 @@ data class LoginResponse(
     val role: String,
     val restaurantId: Long?
 )
+
+/** Usuario de la sesion actual, con el rol vigente en base de datos. */
+data class SessionUserResponse(
+    val userId: Long,
+    val email: String,
+    val role: String,
+    val restaurantId: Long?
+)

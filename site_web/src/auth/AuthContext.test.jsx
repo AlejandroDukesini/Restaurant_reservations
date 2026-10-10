@@ -1,4 +1,4 @@
-import { act, render, renderHook, screen } from "@testing-library/react";
+import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AuthProvider, homePathForRole, useAuth } from "./AuthContext";
 import { readSession, writeSession } from "../api/client";
@@ -18,11 +18,19 @@ describe("homePathForRole", () => {
 describe("AuthProvider", () => {
   const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
 
-  it("recupera la sesion guardada al montar", () => {
+  it("recupera la sesion guardada y la confirma con el servidor", async () => {
     writeSession({ token: "t", role: "COOK", restaurantId: 3 });
+    vi.spyOn(authApi, "fetchCurrentUser").mockResolvedValue({
+      userId: 4,
+      email: "chef@example.test",
+      role: "COOK",
+      restaurantId: 3
+    });
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.status).toBe("checking");
+    await waitFor(() => expect(result.current.status).toBe("ready"));
     expect(result.current.role).toBe("COOK");
     expect(result.current.restaurantId).toBe(3);
   });
@@ -56,6 +64,7 @@ describe("AuthProvider", () => {
 
   it("logout borra la sesion", () => {
     writeSession({ token: "t", role: "ADMIN" });
+    vi.spyOn(authApi, "fetchCurrentUser").mockReturnValue(new Promise(() => {}));
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => result.current.logout());

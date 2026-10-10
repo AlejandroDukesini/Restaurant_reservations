@@ -39,7 +39,7 @@ export default function AdminPage() {
       </div>
 
       {/* La clave reinicia la entrada en cada cambio de pestaña. */}
-      <div key={active} className="motion-fade">
+      <div key={active} className="motion-blur-in">
         <Active />
       </div>
     </Layout>

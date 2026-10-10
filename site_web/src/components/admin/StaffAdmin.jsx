@@ -2,17 +2,19 @@ import { useEffect, useState } from "react";
 import { Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import Modal from "./Modal";
 import { createStaff, deleteStaff, fetchStaff, updateStaff } from "../../api/staffApi";
+import { ErrorState, Loader } from "../LoadState";
 
 const EMPTY = { name: "", email: "", password: "", role: "EMPLOYEE", active: true };
 const ROLE_LABEL = { EMPLOYEE: "Mesero", COOK: "Cocinero" };
 
 export default function StaffAdmin() {
-  const [staff, setStaff] = useState([]);
+  const [staff, setStaff] = useState(null); // null = aún sin primera carga
   const [status, setStatus] = useState("");
   const [editing, setEditing] = useState(null); // null | {} para crear | objeto para editar
   const [form, setForm] = useState(EMPTY);
 
   const load = async () => {
+    setStatus("");
     try {
       setStaff(await fetchStaff());
     } catch (err) {
@@ -76,60 +78,68 @@ export default function StaffAdmin() {
         </button>
       </div>
 
-      {status && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
+      {status && staff && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
 
-      <div className="overflow-x-auto border border-white/10">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-white/[.04] text-xs uppercase tracking-wider text-zinc-400">
-            <tr>
-              <th className="px-4 py-3">Nombre</th>
-              <th className="px-4 py-3">Correo</th>
-              <th className="px-4 py-3">Rol</th>
-              <th className="px-4 py-3">Estado</th>
-              <th className="px-4 py-3 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {staff.map((m, index) => (
-              <tr key={m.id} className="motion-fade border-t border-white/5" style={{ "--i": index }}>
-                <td className="px-4 py-3 text-champagne">{m.name}</td>
-                <td className="px-4 py-3 text-zinc-300">{m.email}</td>
-                <td className="px-4 py-3 text-zinc-300">{ROLE_LABEL[m.role] || m.role}</td>
-                <td className="px-4 py-3">
-                  <span className={`chip ${m.active ? "chip-ready" : "chip-muted"}`}>
-                    {m.active ? "Activo" : "Inactivo"}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(m)}
-                      className="text-zinc-400 hover:text-champagne"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => remove(m.id)}
-                      className="text-zinc-400 hover:text-red-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {staff.length === 0 && (
+      {!staff ? (
+        status ? (
+          <ErrorState message={status} onRetry={load} />
+        ) : (
+          <Loader label="Cargando personal..." />
+        )
+      ) : (
+        <div className="overflow-x-auto border border-white/10">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white/[.04] text-xs uppercase tracking-wider text-zinc-400">
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-zinc-500">
-                  Sin personal registrado.
-                </td>
+                <th className="px-4 py-3">Nombre</th>
+                <th className="px-4 py-3">Correo</th>
+                <th className="px-4 py-3">Rol</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {staff.map((m, index) => (
+                <tr key={m.id} className="motion-fade border-t border-white/5" style={{ "--i": index }}>
+                  <td className="px-4 py-3 text-champagne">{m.name}</td>
+                  <td className="px-4 py-3 text-zinc-300">{m.email}</td>
+                  <td className="px-4 py-3 text-zinc-300">{ROLE_LABEL[m.role] || m.role}</td>
+                  <td className="px-4 py-3">
+                    <span className={`chip ${m.active ? "chip-ready" : "chip-muted"}`}>
+                      {m.active ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(m)}
+                        className="text-zinc-400 hover:text-champagne"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => remove(m.id)}
+                        className="text-zinc-400 hover:text-red-400"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {staff.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-6 text-center text-zinc-500">
+                    Sin personal registrado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {editing && (
         <Modal

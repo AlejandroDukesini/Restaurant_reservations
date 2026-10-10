@@ -105,4 +105,24 @@ describe("apiFetch", () => {
     fetchMock.mockResolvedValue(jsonResponse(204, undefined));
     await expect(apiFetch("/api/admin/staff/1", { method: "DELETE" })).resolves.toBeNull();
   });
+
+  it("sin conexion o sin respuesta a tiempo lanza un mensaje claro en lugar de quedarse colgado", async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    fetchMock.mockRejectedValueOnce(new DOMException("timeout", "TimeoutError"));
+
+    await expect(apiFetch("/api/staff/tables")).rejects.toThrow("No se pudo conectar con el servidor");
+    await expect(apiFetch("/api/staff/tables")).rejects.toThrow("El servidor tardó demasiado en responder");
+    expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("con redirectOnUnauthorized: false un 401 borra la sesion sin recargar la pagina", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, pathname: "/admin", assign });
+    writeSession({ token: "caducado", role: "ADMIN" });
+    fetchMock.mockResolvedValue(jsonResponse(401, {}));
+
+    await expect(apiFetch("/api/auth/me", { redirectOnUnauthorized: false })).rejects.toThrow("Sesión expirada");
+    expect(readSession()).toBeNull();
+    expect(assign).not.toHaveBeenCalled();
+  });
 });

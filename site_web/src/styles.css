@@ -70,6 +70,14 @@
   to { opacity: 0; transform: translateY(8px) scale(.98); }
 }
 
+@keyframes motion-blur-in {
+  from { opacity: 0; filter: blur(6px); }
+}
+
+@keyframes motion-spin {
+  to { rotate: 360deg; }
+}
+
 @keyframes motion-pop {
   45% { transform: scale(1.22); }
 }
@@ -88,6 +96,25 @@
 .motion-fade {
   animation-name: motion-fade-in;
   animation-duration: var(--motion-base);
+}
+
+/* Cambio de pestaña/sección: el desenfoque se disipa mientras aparece el contenido. */
+.motion-blur-in {
+  animation: motion-blur-in var(--motion-slow) var(--motion-ease) backwards;
+}
+
+/* Carga: el retardo evita que el indicador parpadee en respuestas rápidas. */
+.loader-delayed {
+  animation: motion-fade-in var(--motion-base) var(--motion-ease) 180ms backwards;
+}
+
+.loader-ring {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid rgba(216, 169, 67, .22);
+  border-top-color: #d8a943;
+  border-radius: 999px;
+  animation: motion-spin .8s linear infinite;
 }
 
 .motion-pop {

@@ -22,7 +22,8 @@ export default function Layout({ title, subtitle, actions, children }) {
             )}
           </div>
         )}
-        {children}
+        {/* Al cambiar de sección el contenido entra desenfocado y se aclara. */}
+        <div className="motion-blur-in">{children}</div>
       </section>
     </main>
   );

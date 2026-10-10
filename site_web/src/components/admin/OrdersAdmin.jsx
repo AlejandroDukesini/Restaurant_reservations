@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { fetchAllOrders } from "../../api/orderApi";
 import { ITEM_STATUS, ORDER_STATUS, money } from "../../utils/status";
+import { ErrorState, Loader } from "../LoadState";
 
 export default function OrdersAdmin() {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState(null); // null = aún sin primera carga
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -38,49 +39,57 @@ export default function OrdersAdmin() {
         </button>
       </div>
 
-      {status && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
+      {status && orders && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {orders.map((order, index) => {
-          const s = ORDER_STATUS[order.status] || ORDER_STATUS.PENDING;
-          return (
-            <article
-              key={order.id}
-              className="motion-enter card-lift zone-band"
-              style={{ "--i": index }}
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-semibold text-champagne">
-                    Mesa {order.tableNumber}
-                  </h3>
-                  <p className="text-xs text-zinc-500">
-                    {order.employeeName} · {new Date(order.orderDate).toLocaleString()}
-                  </p>
+      {!orders ? (
+        status ? (
+          <ErrorState message={status} onRetry={load} retrying={loading} />
+        ) : (
+          <Loader label="Cargando pedidos..." />
+        )
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {orders.map((order, index) => {
+            const s = ORDER_STATUS[order.status] || ORDER_STATUS.PENDING;
+            return (
+              <article
+                key={order.id}
+                className="motion-enter card-lift zone-band"
+                style={{ "--i": index }}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-champagne">
+                      Mesa {order.tableNumber}
+                    </h3>
+                    <p className="text-xs text-zinc-500">
+                      {order.employeeName} · {new Date(order.orderDate).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className={`chip ${s.chip}`}>{s.label}</span>
                 </div>
-                <span className={`chip ${s.chip}`}>{s.label}</span>
-              </div>
-              <ul className="space-y-1 border-t border-white/10 pt-2 text-sm text-zinc-300">
-                {order.items.map((item) => {
-                  const is = ITEM_STATUS[item.status] || ITEM_STATUS.PENDING;
-                  return (
-                    <li key={item.id} className="flex items-center justify-between gap-2">
-                      <span className="truncate">
-                        {item.quantity}× {item.itemName}
-                      </span>
-                      <span className={`chip ${is.chip}`}>{is.label}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-              <p className="mt-2 text-right text-sm font-semibold text-champagne">
-                {money(order.totalAmount)}
-              </p>
-            </article>
-          );
-        })}
-        {orders.length === 0 && <p className="motion-fade text-sm text-zinc-500">Sin pedidos.</p>}
-      </div>
+                <ul className="space-y-1 border-t border-white/10 pt-2 text-sm text-zinc-300">
+                  {order.items.map((item) => {
+                    const is = ITEM_STATUS[item.status] || ITEM_STATUS.PENDING;
+                    return (
+                      <li key={item.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          {item.quantity}× {item.itemName}
+                        </span>
+                        <span className={`chip ${is.chip}`}>{is.label}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="mt-2 text-right text-sm font-semibold text-champagne">
+                  {money(order.totalAmount)}
+                </p>
+              </article>
+            );
+          })}
+          {orders.length === 0 && <p className="motion-fade text-sm text-zinc-500">Sin pedidos.</p>}
+        </div>
+      )}
     </div>
   );
 }

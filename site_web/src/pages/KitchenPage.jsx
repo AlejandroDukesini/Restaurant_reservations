@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Flame, RefreshCw, Soup } from "lucide-react";
 import Layout from "../components/Layout";
+import { ErrorState, Loader } from "../components/LoadState";
 import { fetchKitchenQueue, updateItemStatus } from "../api/orderApi";
 import { CATEGORY_LABEL, ITEM_STATUS } from "../utils/status";
 
@@ -14,7 +15,7 @@ function RecipeRow({ label, value }) {
 }
 
 export default function KitchenPage() {
-  const [queue, setQueue] = useState([]);
+  const [queue, setQueue] = useState(null); // null = aún sin primera carga
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -58,9 +59,15 @@ export default function KitchenPage() {
 
   return (
     <Layout subtitle="Cola de cocina" title="Cocina · Platos por preparar" actions={refreshBtn}>
-      {status && <p className="motion-fade mb-4 text-sm text-red-300">{status}</p>}
+      {status && queue && <p className="motion-fade mb-4 text-sm text-red-300">{status}</p>}
 
-      {queue.length === 0 ? (
+      {!queue ? (
+        status ? (
+          <ErrorState message={status} onRetry={load} retrying={loading} />
+        ) : (
+          <Loader label="Cargando la cola de cocina..." />
+        )
+      ) : queue.length === 0 ? (
         <div className="motion-enter zone-band grid place-items-center py-16 text-center" style={{ "--i": 1 }}>
           <Soup className="h-10 w-10 text-gold" />
           <p className="mt-3 text-lg text-champagne">No hay platos pendientes</p>
