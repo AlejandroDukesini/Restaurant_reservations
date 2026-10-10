@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,7 +42,12 @@ fun ReservationsScreen(viewModel: ReservationsViewModel) {
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-            Text("Reservas", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            // El titulo "Reservas" ya esta en la barra superior.
+            Text(
+                "Reservas de las mesas, por fecha",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f).align(Alignment.CenterVertically)
+            )
             OutlinedButton(onClick = viewModel::load) { Text("Actualizar") }
         }
         state.message?.let { Text(it, color = MaterialTheme.colorScheme.error) }

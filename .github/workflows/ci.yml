@@ -112,11 +112,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # AGP 8.6 requiere JDK 17+; ubuntu-latest ya trae el Android SDK (ANDROID_HOME).
+      # JDK 21: el que exige android/gradle/gradle-daemon-jvm.properties.
+      # ubuntu-latest ya trae el Android SDK (ANDROID_HOME).
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       - uses: gradle/actions/setup-gradle@v5
 
