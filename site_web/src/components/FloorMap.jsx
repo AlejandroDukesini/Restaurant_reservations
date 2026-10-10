@@ -25,8 +25,12 @@ export default function FloorMap({ tables, selectedTableId, onSelect }) {
 
   return (
     <div className="grid min-w-0 gap-4 xl:grid-cols-2">
-      {zones.map((zone) => (
-        <section key={zone.zoneName} className="zone-band min-w-0">
+      {zones.map((zone, zoneIndex) => (
+        <section
+          key={zone.zoneName}
+          className="motion-enter zone-band min-w-0"
+          style={{ "--i": zoneIndex }}
+        >
           <header className="mb-4 flex items-center justify-between gap-3">
             <h3 className="truncate text-lg font-semibold text-champagne">{zone.zoneName}</h3>
             <Sparkles className="h-4 w-4 shrink-0 text-gold" />
@@ -34,7 +38,7 @@ export default function FloorMap({ tables, selectedTableId, onSelect }) {
 
           {/* Grid robusto: columnas equitativas, responsivo, sin posicionado absoluto frágil. */}
           <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3">
-            {zone.tables.map((table) => {
+            {zone.tables.map((table, index) => {
               const occupied = table.status === "OCCUPIED";
               const selected = selectedTableId === table.id;
               const displayName = table.name || `Mesa ${table.tableNumber}`;
@@ -44,10 +48,11 @@ export default function FloorMap({ tables, selectedTableId, onSelect }) {
                   type="button"
                   onClick={() => onSelect(table.id)}
                   className={[
-                    "table-button box-border",
+                    "motion-enter table-button box-border",
                     occupied ? "table-occupied-soft" : "table-free",
                     selected ? "table-selected" : ""
                   ].join(" ")}
+                  style={{ "--i": zoneIndex + index + 1 }}
                   aria-pressed={selected}
                   title={`${displayName} · ${table.capacity} personas`}
                 >

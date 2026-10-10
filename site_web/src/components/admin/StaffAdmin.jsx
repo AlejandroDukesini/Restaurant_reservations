@@ -76,7 +76,7 @@ export default function StaffAdmin() {
         </button>
       </div>
 
-      {status && <p className="mb-3 text-sm text-red-300">{status}</p>}
+      {status && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
 
       <div className="overflow-x-auto border border-white/10">
         <table className="w-full text-left text-sm">
@@ -90,8 +90,8 @@ export default function StaffAdmin() {
             </tr>
           </thead>
           <tbody>
-            {staff.map((m) => (
-              <tr key={m.id} className="border-t border-white/5">
+            {staff.map((m, index) => (
+              <tr key={m.id} className="motion-fade border-t border-white/5" style={{ "--i": index }}>
                 <td className="px-4 py-3 text-champagne">{m.name}</td>
                 <td className="px-4 py-3 text-zinc-300">{m.email}</td>
                 <td className="px-4 py-3 text-zinc-300">{ROLE_LABEL[m.role] || m.role}</td>

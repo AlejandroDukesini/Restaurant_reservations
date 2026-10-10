@@ -107,11 +107,15 @@ export default function MenuAdmin() {
         </button>
       </div>
 
-      {status && <p className="mb-3 text-sm text-red-300">{status}</p>}
+      {status && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {items.map((item) => (
-          <article key={item.id} className="zone-band">
+        {items.map((item, index) => (
+          <article
+              key={item.id}
+              className="motion-enter card-lift zone-band"
+              style={{ "--i": index }}
+            >
             <div className="mb-2 flex items-start justify-between gap-2">
               <div>
                 <h3 className="text-base font-semibold text-champagne">{item.name}</h3>
@@ -135,7 +139,7 @@ export default function MenuAdmin() {
             </div>
           </article>
         ))}
-        {items.length === 0 && <p className="text-sm text-zinc-500">Sin platos en el menú.</p>}
+        {items.length === 0 && <p className="motion-fade text-sm text-zinc-500">Sin platos en el menú.</p>}
       </div>
 
       {editing && (

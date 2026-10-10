@@ -58,20 +58,24 @@ export default function KitchenPage() {
 
   return (
     <Layout subtitle="Cola de cocina" title="Cocina · Platos por preparar" actions={refreshBtn}>
-      {status && <p className="mb-4 text-sm text-red-300">{status}</p>}
+      {status && <p className="motion-fade mb-4 text-sm text-red-300">{status}</p>}
 
       {queue.length === 0 ? (
-        <div className="zone-band grid place-items-center py-16 text-center">
+        <div className="motion-enter zone-band grid place-items-center py-16 text-center" style={{ "--i": 1 }}>
           <Soup className="h-10 w-10 text-gold" />
           <p className="mt-3 text-lg text-champagne">No hay platos pendientes</p>
           <p className="text-sm text-zinc-500">La cocina está al día.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {queue.map((item) => {
+          {queue.map((item, index) => {
             const is = ITEM_STATUS[item.status] || ITEM_STATUS.PENDING;
             return (
-              <article key={item.orderItemId} className="zone-band flex flex-col justify-between">
+              <article
+                key={item.orderItemId}
+                className="motion-enter card-lift zone-band flex flex-col justify-between"
+                style={{ "--i": index + 1 }}
+              >
                 <div>
                   <div className="mb-3 flex items-start justify-between gap-2">
                     <div>

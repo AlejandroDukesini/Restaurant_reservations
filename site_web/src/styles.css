@@ -11,7 +11,94 @@
 
   --shadow-gold: 0 0 28px rgba(216, 169, 67, 0.42), inset 0 0 18px rgba(248, 231, 176, 0.12);
   --shadow-neon: 0 0 22px rgba(248, 231, 176, 0.24);
+
+  /* Las utilidades `transition` de Tailwind heredan la curva y duración del sistema de movimiento. */
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: cubic-bezier(.22, 1, .36, 1);
 }
+
+/* ---------- Sistema de movimiento ---------- */
+:root {
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --motion-slow: 420ms;
+  --motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --motion-ease-in: cubic-bezier(.4, 0, 1, 1);
+  --motion-rise: 10px;
+  --motion-stagger: 45ms;
+}
+
+@layer base {
+  button, a, select, textarea {
+    transition-property: color, background-color, border-color, box-shadow, opacity, filter, scale;
+    transition-duration: var(--motion-fast);
+    transition-timing-function: var(--motion-ease);
+  }
+
+  /* Feedback táctil al presionar; `scale` no interfiere con los `transform` de hover. */
+  button:not(:disabled):active {
+    scale: .96;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(216, 169, 67, .85);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes motion-fade-up {
+  from { opacity: 0; transform: translateY(var(--motion-rise)); }
+}
+
+@keyframes motion-fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes motion-fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes motion-dialog-in {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+}
+
+@keyframes motion-dialog-out {
+  to { opacity: 0; transform: translateY(8px) scale(.98); }
+}
+
+@keyframes motion-pop {
+  45% { transform: scale(1.22); }
+}
+
+/*
+ * Entradas escalonadas: `--i` (índice) fija el retardo, con tope para listas largas.
+ * fill-mode `backwards` no deja `transform` residual, así los `position: fixed`
+ * descendientes (modales) siguen anclados al viewport.
+ */
+.motion-enter,
+.motion-fade {
+  animation: motion-fade-up var(--motion-slow) var(--motion-ease) backwards;
+  animation-delay: calc(min(var(--i, 0), 10) * var(--motion-stagger));
+}
+
+.motion-fade {
+  animation-name: motion-fade-in;
+  animation-duration: var(--motion-base);
+}
+
+.motion-pop {
+  display: inline-block;
+  animation: motion-pop var(--motion-base) var(--motion-ease);
+}
+
+.motion-backdrop { animation: motion-fade-in var(--motion-base) var(--motion-ease) backwards; }
+.motion-dialog { animation: motion-dialog-in var(--motion-base) var(--motion-ease) backwards; }
+.motion-backdrop.is-closing { animation: motion-fade-out var(--motion-fast) var(--motion-ease-in) forwards; }
+.motion-dialog.is-closing { animation: motion-dialog-out var(--motion-fast) var(--motion-ease-in) forwards; }
 
 /* Degradado metálico dorado (no cabe en un token de color de Tailwind). */
 .bg-metal {
@@ -61,6 +148,22 @@ input::placeholder {
   padding: 1rem;
 }
 
+/* Tarjetas interactivas: elevación ligera al pasar el cursor. */
+.card-lift {
+  transition:
+    transform var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
+}
+
+@media (hover: hover) {
+  .card-lift:hover {
+    transform: translateY(-2px);
+    border-color: rgba(216, 169, 67, .38);
+    box-shadow: 0 12px 28px -16px rgba(216, 169, 67, .45);
+  }
+}
+
 .table-button {
   display: flex;
   flex-direction: column;
@@ -73,7 +176,18 @@ input::placeholder {
   background: rgba(10, 10, 11, .88);
   padding: .75rem .6rem;
   text-align: center;
-  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, opacity .2s ease;
+  transition:
+    transform var(--motion-base) var(--motion-ease),
+    scale var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    opacity var(--motion-base) var(--motion-ease);
+}
+
+/* El cambio de estado/selección se funde en lugar de saltar. */
+.table-button rect,
+.table-button circle {
+  transition: fill var(--motion-base) var(--motion-ease), stroke var(--motion-base) var(--motion-ease);
 }
 
 /* El icono (mesa + sillas) nunca se comprime, para mantener proporciones idénticas. */
@@ -81,10 +195,18 @@ input::placeholder {
   flex: none;
 }
 
-.table-free:hover {
-  transform: translateY(-2px);
-  border-color: rgba(248, 231, 176, .72);
-  box-shadow: 0 0 18px rgba(216, 169, 67, .2);
+/* Hover solo en dispositivos con puntero: evita estados "pegados" en pantallas táctiles. */
+@media (hover: hover) {
+  .table-free:hover {
+    transform: translateY(-2px);
+    border-color: rgba(248, 231, 176, .72);
+    box-shadow: 0 0 18px rgba(216, 169, 67, .2);
+  }
+
+  .table-occupied-soft:hover {
+    transform: translateY(-2px);
+    border-color: rgba(248, 231, 176, .72);
+  }
 }
 
 .table-selected {
@@ -104,11 +226,6 @@ input::placeholder {
   box-shadow: inset 0 0 18px rgba(216, 169, 67, .12);
 }
 
-.table-occupied-soft:hover {
-  transform: translateY(-2px);
-  border-color: rgba(248, 231, 176, .72);
-}
-
 .chip {
   display: inline-flex;
   align-items: center;
@@ -119,6 +236,7 @@ input::placeholder {
   text-transform: uppercase;
   letter-spacing: .08em;
   border: 1px solid rgba(255, 255, 255, .14);
+  transition: color var(--motion-base) var(--motion-ease), border-color var(--motion-base) var(--motion-ease);
 }
 
 .chip-pending { color: #f8e7b0; border-color: rgba(216, 169, 67, .4); }
@@ -155,4 +273,27 @@ input::placeholder {
   background: rgba(255, 255, 255, .035);
   padding: 0 .9rem;
   color: #d8a943;
+  transition:
+    border-color var(--motion-base) var(--motion-ease),
+    background-color var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
+}
+
+.input-shell:focus-within {
+  border-color: rgba(216, 169, 67, .6);
+  background-color: rgba(255, 255, 255, .05);
+  box-shadow: 0 0 0 3px rgba(216, 169, 67, .12);
+}
+
+/* Movimiento reducido: el contenido aparece en su estado final, sin desplazamientos. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

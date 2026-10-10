@@ -19,7 +19,7 @@ export default function AdminPage() {
 
   return (
     <Layout subtitle="Panel de control" title="Administración">
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="motion-enter mb-6 flex flex-wrap gap-2" style={{ "--i": 1 }}>
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -38,7 +38,10 @@ export default function AdminPage() {
         ))}
       </div>
 
-      <Active />
+      {/* La clave reinicia la entrada en cada cambio de pestaña. */}
+      <div key={active} className="motion-fade">
+        <Active />
+      </div>
     </Layout>
   );
 }

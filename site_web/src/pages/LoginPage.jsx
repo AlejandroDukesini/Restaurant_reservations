@@ -1,9 +1,5 @@
 import { useState } from "react";
-<<<<<<< HEAD
-import { useNavigate } from "react-router-dom";
-=======
 import { Navigate, useNavigate } from "react-router-dom";
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
 import { KeyRound, LockKeyhole, Mail, Martini } from "lucide-react";
 import { homePathForRole, useAuth } from "../auth/AuthContext";
 
@@ -21,15 +17,10 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-<<<<<<< HEAD
-  if (isAuthenticated) {
-    navigate(homePathForRole(role), { replace: true });
-=======
   // <Navigate> y no navigate(): llamar a navigate() durante el render lo ignora
   // React Router, y un usuario con sesion se quedaba en la pantalla de login.
   if (isAuthenticated) {
     return <Navigate to={homePathForRole(role)} replace />;
->>>>>>> ed340704ed016e6dcc9e8c59c76220b3ee9c292e
   }
 
   const onSubmit = async (event) => {
@@ -54,7 +45,7 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-carbon px-5 py-10 text-zinc-100">
       <div className="w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center text-center">
+        <div className="motion-enter mb-8 flex flex-col items-center text-center">
           <span className="grid h-14 w-14 place-items-center rounded-full border border-gold/50 bg-metal shadow-gold">
             <Martini className="h-7 w-7 text-carbon" />
           </span>
@@ -65,7 +56,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="zone-band space-y-4 rounded-lg">
+        <form
+          onSubmit={onSubmit}
+          className="motion-enter zone-band space-y-4 rounded-lg"
+          style={{ "--i": 2 }}
+        >
           <label className="input-label">
             Correo
             <span className="input-shell">
@@ -97,7 +92,7 @@ export default function LoginPage() {
           </label>
 
           {error && (
-            <p className="rounded border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            <p className="motion-fade rounded border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
               {error}
             </p>
           )}
@@ -112,7 +107,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-zinc-400">
+        <div className="motion-enter mt-6 text-center text-xs text-zinc-400" style={{ "--i": 4 }}>
           <p className="uppercase tracking-[.18em] text-zinc-300">Cuentas de demostración</p>
           <p className="mt-1">Contraseña: password123</p>
           <div className="mt-3 flex flex-wrap justify-center gap-2">

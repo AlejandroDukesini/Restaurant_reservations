@@ -38,13 +38,17 @@ export default function OrdersAdmin() {
         </button>
       </div>
 
-      {status && <p className="mb-3 text-sm text-red-300">{status}</p>}
+      {status && <p className="motion-fade mb-3 text-sm text-red-300">{status}</p>}
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {orders.map((order) => {
+        {orders.map((order, index) => {
           const s = ORDER_STATUS[order.status] || ORDER_STATUS.PENDING;
           return (
-            <article key={order.id} className="zone-band">
+            <article
+              key={order.id}
+              className="motion-enter card-lift zone-band"
+              style={{ "--i": index }}
+            >
               <div className="mb-2 flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-semibold text-champagne">
@@ -75,7 +79,7 @@ export default function OrdersAdmin() {
             </article>
           );
         })}
-        {orders.length === 0 && <p className="text-sm text-zinc-500">Sin pedidos.</p>}
+        {orders.length === 0 && <p className="motion-fade text-sm text-zinc-500">Sin pedidos.</p>}
       </div>
     </div>
   );

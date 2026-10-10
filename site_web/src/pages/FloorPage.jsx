@@ -96,7 +96,11 @@ export default function FloorPage() {
 
   return (
     <Layout subtitle="Mapa interactivo" title="Piso · Reportar pedidos">
-      {status && <p className="mb-4 text-sm text-zinc-400">{status}</p>}
+      {status && (
+        <p key={status} className="motion-fade mb-4 text-sm text-zinc-400">
+          {status}
+        </p>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <FloorMap
@@ -105,13 +109,14 @@ export default function FloorPage() {
           onSelect={setSelectedTableId}
         />
 
-        <aside className="zone-band h-fit space-y-5">
+        <aside className="motion-enter zone-band h-fit" style={{ "--i": 2 }}>
           {!selectedTable ? (
-            <p className="text-sm text-zinc-400">
+            <p className="motion-fade text-sm text-zinc-400">
               Selecciona una mesa para tomar o revisar un pedido.
             </p>
           ) : (
-            <>
+            // La clave reinicia la entrada al cambiar de mesa.
+            <div key={selectedTable.id} className="motion-fade space-y-5">
               <div className="border-b border-white/10 pb-4">
                 <p className="text-xs uppercase tracking-[.2em] text-gold">Mesa seleccionada</p>
                 <h3 className="mt-1 text-2xl font-semibold text-champagne">
@@ -148,7 +153,10 @@ export default function FloorPage() {
                         >
                           <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="w-5 text-center text-sm text-champagne">
+                        <span
+                          key={draft[item.id] || 0}
+                          className="motion-pop w-5 text-center text-sm text-champagne"
+                        >
                           {draft[item.id] || 0}
                         </span>
                         <button
@@ -166,7 +174,9 @@ export default function FloorPage() {
 
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-sm text-zinc-400">Total</span>
-                  <span className="text-lg font-semibold text-champagne">{money(draftTotal)}</span>
+                  <span key={draftTotal} className="motion-pop text-lg font-semibold text-champagne">
+                    {money(draftTotal)}
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -181,13 +191,17 @@ export default function FloorPage() {
               <div className="border-t border-white/10 pt-4">
                 <p className="mb-2 text-sm font-semibold text-champagne">Pedidos de la mesa</p>
                 {orders.length === 0 ? (
-                  <p className="text-xs text-zinc-500">Sin pedidos aún.</p>
+                  <p className="motion-fade text-xs text-zinc-500">Sin pedidos aún.</p>
                 ) : (
                   <div className="space-y-3">
-                    {orders.map((order) => {
+                    {orders.map((order, index) => {
                       const s = ORDER_STATUS[order.status] || ORDER_STATUS.PENDING;
                       return (
-                        <div key={order.id} className="border border-white/10 bg-white/[.03] p-3">
+                        <div
+                          key={order.id}
+                          className="motion-enter border border-white/10 bg-white/[.03] p-3"
+                          style={{ "--i": index }}
+                        >
                           <div className="mb-2 flex items-center justify-between">
                             <span className={`chip ${s.chip}`}>{s.label}</span>
                             <div className="flex items-center gap-2">
@@ -223,7 +237,7 @@ export default function FloorPage() {
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
         </aside>
       </div>
