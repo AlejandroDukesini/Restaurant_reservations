@@ -18,7 +18,7 @@ matriz de trazabilidad de las pruebas están en [`TESTING.md`](TESTING.md).
 | | Hibernate ORM | 6.3 (gestionado por Spring Boot 3.2.0) |
 | | JWT | JJWT 0.12.3 (HS512) |
 | | Base de datos | PostgreSQL (driver 42.7.1); esquema por `ddl-auto` |
-| | Build | Gradle 8.6 — **solo `gradlew.bat`**, sin script `gradlew` para Linux/macOS |
+| | Build | Gradle 8.6 — **solo `gradlew.bat`**, sin script `gradlew` para Linux/macOS (resuelto después: se añadió `gradlew`) |
 | Frontend | React / React DOM | 19.2.7 (resuelto en `pnpm-lock.yaml`) |
 | | React Router | 7.18.1 |
 | | Vite / @vitejs/plugin-react | 8.1.4 / 6.0.3 |

@@ -44,11 +44,18 @@ notas de preparación) se define una vez y el cocinero la consulta desde la cola
 
 ## Requisitos previos
 
-- **JDK 21** (obligatorio: Gradle 8.6 no funciona con JDK 24/25).
+- **JDK 21** (obligatorio: Gradle 8.6 no funciona con JDK 24/25). Gradle se ejecuta con el wrapper
+  incluido (`gradlew` / `gradlew.bat`); no hace falta instalarlo.
 - **PostgreSQL 14+** en `localhost:5432` para ejecutar la aplicación. Las pruebas **no** lo necesitan.
-- **Node.js**: ≥ 20.19 para compilar el frontend (Vite 8) y ≥ 22.22.2 o ≥ 24.15 para sus pruebas
-  (jsdom 30). El campo `packageManager` fija **pnpm 9.15.9**; Corepack (incluido en Node) lo usa
+- **Node.js** `^22.22.2`, `^24.15.0` o `>=26` (lo exige jsdom 30, usado por las pruebas; campo
+  `engines`). El campo `packageManager` fija **pnpm 9.15.9**; Corepack (incluido en Node) lo usa
   automáticamente con `corepack pnpm …` o tras `corepack enable`.
+
+> **Qué se entrega:** una aplicación **web** (SPA React servida por el backend o por Vite) y una API
+> REST. El repositorio **no** contiene una PWA (no hay `manifest.webmanifest` ni service worker, así
+> que no se puede "instalar" desde el navegador) ni una app **Android**: el código Kotlin es el
+> backend Spring Boot, no genera APK/AAB. Una app Android sería un proyecto aparte (Android Gradle
+> Plugin) que consumiría esta misma API `/api`.
 
 ---
 
@@ -77,16 +84,23 @@ un restaurante, 5 zonas, 16 mesas, 10 platos con receta y 5 usuarios.
 
 ### 3. Backend (Kotlin / Spring Boot)
 
-`gradle.properties` apunta a un JDK 21 en `C:/Program Files/Java/jdk-21`. Si tu JDK 21 está en otra
-ruta, ajústala ahí (o borra esa línea y usa `JAVA_HOME` apuntando a un JDK 21).
+Gradle usa el JDK de `JAVA_HOME`, que debe ser un **JDK 21**. Si tu `JAVA_HOME` apunta a otra
+versión (p. ej. 25) y no quieres cambiarlo, fija el JDK 21 solo para Gradle en tu archivo de
+usuario `~/.gradle/gradle.properties` (no en el del proyecto, que es compartido):
+
+```properties
+org.gradle.java.home=C:/Program Files/Java/jdk-21
+```
 
 ```powershell
 # Windows (PowerShell): el prefijo .\ es obligatorio
 .\gradlew.bat bootRun
 ```
 
-> En Linux/macOS el repositorio no incluye el script `gradlew`. Usa un Gradle 8.6 instalado
-> (`gradle bootRun`) o la imagen Docker.
+```bash
+# Linux/macOS
+./gradlew bootRun
+```
 
 El backend queda en `http://localhost:8081`.
 
@@ -101,13 +115,34 @@ corepack pnpm dev
 ```
 
 Abre `http://localhost:5173`. El servidor de Vite hace _proxy_ de `/api` hacia el backend en
-`http://localhost:8081`.
+`http://localhost:8081`, así que el backend debe estar en marcha.
+
+---
+
+## Build de producción
+
+```bash
+# Frontend → site_web/dist/
+cd site_web
+corepack pnpm build
+corepack pnpm preview   # solo para revisar el build en http://127.0.0.1:4173 (no es un servidor de producción)
+
+# Backend → build/libs/restaurant-reservations-1.0.0.jar
+./gradlew bootJar       # Windows: .\gradlew.bat bootJar
+java -jar build/libs/restaurant-reservations-1.0.0.jar
+```
+
+El JAR solo incluye el frontend si `site_web/dist` se copia antes a `src/main/resources/static`; el
+`Dockerfile` lo hace automáticamente y es la forma recomendada de generar el artefacto desplegable
+(ver [Despliegue](#despliegue)).
 
 ---
 
 ## Configuración (variables de entorno)
 
-Todas son opcionales en desarrollo. **No guardes secretos en el repositorio.**
+Todas son del backend y opcionales en desarrollo; el frontend no usa variables de entorno. Defínelas
+en la terminal, en la configuración de ejecución del IDE o en tu plataforma de despliegue. **No
+guardes secretos en el repositorio** (`.env` y `.env.*` están en `.gitignore`).
 
 | Variable | Por defecto | Uso |
 | --- | --- | --- |
@@ -173,7 +208,7 @@ trazabilidad y limitaciones en [`TESTING.md`](TESTING.md).
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) se ejecuta en cada `push` a `Principal`, `Beta` o
 `main` y en cada pull request:
 
-1. **Backend**: JDK 21 + Gradle 8.6 → `gradle build` (compilación, pruebas y JaCoCo). Publica los
+1. **Backend**: JDK 21 + wrapper de Gradle 8.6 → `./gradlew build` (compilación, pruebas y JaCoCo). Publica los
    reportes como artefactos.
 2. **Frontend**: Node 24 + pnpm 9.15.9 (de `packageManager`) → `pnpm install --frozen-lockfile`, pruebas con cobertura y build
    de producción.
@@ -206,15 +241,22 @@ En Railway, `railway.toml` construye con ese Dockerfile; define allí las variab
 
 - **`Port 8081 was already in use`**: define `PORT` con un puerto libre y actualiza el destino del
   proxy en `site_web/vite.config.js` para que coincida.
-- **`Java home ... is invalid` / la build falla al arrancar**: falta JDK 21 o la ruta de
-  `gradle.properties` no coincide con tu instalación. Corrige `org.gradle.java.home`.
+- **`Java home ... is invalid`, `Unsupported class file major version` o Gradle falla al
+  arrancar**: Gradle se está ejecutando con un JDK distinto de 21. Comprueba con
+  `./gradlew --version` (línea *Launcher/Daemon JVM*) y apunta `JAVA_HOME` o
+  `org.gradle.java.home` (en `~/.gradle/gradle.properties`) a un JDK 21.
+- **`./gradlew: Permission denied`** (Linux/macOS): `chmod +x gradlew`.
+- **`Connection to localhost:5432 refused`** al arrancar el backend: PostgreSQL no está en marcha o
+  la base `restaurant_reservations` no existe (ver [Base de datos](#2-base-de-datos)).
+- **`ERR_PNPM_UNSUPPORTED_ENGINE` o fallos de jsdom al ejecutar las pruebas**: tu Node.js está fuera
+  del rango de `engines`; usa Node 22.22.2+ o 24.15+ (`node -v`).
 - **`violates check constraint "users_role_check"`**: tu base de datos viene de una versión anterior
   sin el rol `COOK`. Elimina el constraint obsoleto (una sola vez):
   `ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;`
   o recrea la base de datos vacía.
 - **`ERR_PNPM_VIRTUAL_STORE_DIR_MAX_LENGTH_DIFF`** al instalar el frontend: el `node_modules`
-  existente lo creó otra versión de pnpm. Usa la versión fijada (`corepack pnpm install`); con el
-  `.npmrc` del proyecto, pnpm recrea `node_modules` sin pedir confirmación.
+  existente lo creó otra versión de pnpm (o está incompleto y `vite`/`vitest` no se encuentran).
+  Borra `site_web/node_modules` y vuelve a ejecutar `corepack pnpm install --frozen-lockfile`.
 
 ---
 
@@ -248,7 +290,8 @@ reservas/
 ├── Dockerfile        # Build multi-etapa (frontend + backend) para despliegue
 ├── railway.toml
 ├── build.gradle.kts
-├── gradle.properties     # JDK usado por Gradle (JDK 21)
+├── gradle.properties     # Opciones de Gradle/Kotlin (sin rutas locales)
+├── gradlew, gradlew.bat  # Wrapper de Gradle 8.6
 ├── QA_AUDIT.md           # Auditoría técnica, defectos y riesgos
 ├── TESTING.md            # Estrategia de pruebas, comandos y trazabilidad
 └── README.md

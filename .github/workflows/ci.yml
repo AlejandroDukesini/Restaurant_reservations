@@ -27,20 +27,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # gradle.properties fija org.gradle.java.home a una ruta de Windows que no
-      # existe en el runner; se elimina solo en la copia efimera del CI. Debe ir antes
-      # de setup-gradle, que ya ejecuta gradle al aprovisionar la version.
-      - name: Usar el JDK del runner
-        run: sed -i '/^org.gradle.java.home=/d' gradle.properties
-
-      # El repositorio solo incluye gradlew.bat; se usa la misma version de Gradle
-      # que el wrapper (8.6), igual que hace el Dockerfile.
+      # Cachea el wrapper y las dependencias; la version de Gradle la fija gradle-wrapper.properties.
       - uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: "8.6"
 
       - name: Compilar, probar y medir cobertura
-        run: gradle build --no-daemon --console=plain
+        run: ./gradlew build --no-daemon --console=plain
 
       - name: Publicar reportes de pruebas y cobertura
         if: always()

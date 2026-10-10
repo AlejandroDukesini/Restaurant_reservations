@@ -7,7 +7,7 @@ ejecución verificada. La auditoría y los defectos están en [`QA_AUDIT.md`](QA
 
 | Componente | Requisito |
 | --- | --- |
-| Backend | JDK 21. Gradle 8.6 vía `gradlew.bat` (Windows) o un Gradle 8.6 instalado (Linux/macOS: no hay script `gradlew`). **No necesita PostgreSQL**: las pruebas usan H2 en memoria. |
+| Backend | JDK 21. Gradle 8.6 vía el wrapper (`gradlew.bat` en Windows, `./gradlew` en Linux/macOS). **No necesita PostgreSQL**: las pruebas usan H2 en memoria. |
 | Frontend | Node.js ≥ 22.22.2 o ≥ 24.15 (lo exige jsdom 30, que usa Vitest) y pnpm 9.15.9, que Corepack toma de `packageManager` (`corepack pnpm …`). |
 
 ## Cómo ejecutar
@@ -20,9 +20,8 @@ ejecución verificada. La auditoría y los defectos están en [`QA_AUDIT.md`](QA
 ```
 
 ```bash
-# Backend (Linux/macOS con Gradle 8.6 instalado). Si gradle.properties apunta a un JDK que
-# no existe en tu máquina, sobrescribe la ruta:
-gradle test -Dorg.gradle.java.home="$JAVA_HOME"
+# Backend (Linux/macOS)
+./gradlew test
 
 # Frontend
 cd site_web

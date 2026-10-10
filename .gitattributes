@@ -1,0 +1,3 @@
+# Scripts del wrapper con el fin de linea que exige cada sistema.
+gradlew text eol=lf
+*.bat text eol=crlf

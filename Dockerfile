@@ -13,10 +13,8 @@ COPY site_web/ ./
 RUN pnpm build
 
 # ---------- Etapa 2: compilar el backend (Kotlin + Spring Boot) ----------
-# Se usa la imagen oficial de Gradle en vez del wrapper porque el repo solo
-# tiene gradlew.bat (Windows) y no el script gradlew de Linux.
-# gradle.properties NO se copia a proposito: apunta org.gradle.java.home a una
-# ruta de Windows que no existe dentro del contenedor.
+# La imagen oficial de Gradle trae la misma version que el wrapper (8.6) y evita
+# descargar la distribucion en cada build.
 FROM gradle:8.6-jdk21 AS backend
 WORKDIR /app
 
