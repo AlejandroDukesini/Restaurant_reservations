@@ -7,7 +7,7 @@ regenerarlas.
 ## Entorno de medición
 
 - **Máquina:** laptop de desarrollo (Windows 11), PostgreSQL 18 local.
-- **Backend:** Kotlin + Spring Boot 3.2, JDK 21, pool de conexiones HikariCP (por defecto en Spring Boot).
+- **Backend:** Java 21 + Spring Boot 3.5, pool de conexiones HikariCP (por defecto en Spring Boot).
 - **Frontend:** build de producción de Vite (`site_web/dist`), servido con `vite preview`.
 - **Dataset de carga:** 150 pedidos activos × 3 platos = **450 ítems en la cola de cocina**
   (ver "Sembrado de datos").

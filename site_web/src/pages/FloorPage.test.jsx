@@ -116,4 +116,33 @@ describe("FloorPage (flujo del mesero)", () => {
 
     expect(await screen.findByText("Menu item not found")).toBeInTheDocument();
   });
+
+  it("muestra la carga del menú en lugar de un menú vacío", async () => {
+    let resolveMenu;
+    menuApi.fetchMenu.mockReturnValue(new Promise((resolve) => (resolveMenu = resolve)));
+    const user = userEvent.setup();
+    renderFloor();
+
+    await user.click(await screen.findByRole("button", { name: /Mesa Familiar/ }));
+    expect(screen.getByText("Cargando el menú...")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Agregar uno" })).not.toBeInTheDocument();
+
+    resolveMenu(MENU);
+    expect(await screen.findByText("Risotto")).toBeInTheDocument();
+    expect(screen.queryByText("Cargando el menú...")).not.toBeInTheDocument();
+  });
+
+  it("si el menú falla muestra el error y permite reintentar sin afectar al mapa", async () => {
+    menuApi.fetchMenu.mockRejectedValueOnce(new Error("El servidor tardó demasiado en responder."));
+    const user = userEvent.setup();
+    renderFloor();
+
+    await user.click(await screen.findByRole("button", { name: /Mesa Familiar/ }));
+    expect(await screen.findByText("El servidor tardó demasiado en responder.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Mesa 11/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Reintentar/ }));
+    expect(await screen.findByText("Risotto")).toBeInTheDocument();
+    expect(menuApi.fetchMenu).toHaveBeenCalledTimes(2);
+  });
 });

@@ -12,6 +12,13 @@ export const ITEM_STATUS = {
   READY: { label: "Listo", chip: "chip-ready" }
 };
 
+export const RESERVATION_STATUS = {
+  PENDING: { label: "Pendiente", chip: "chip-pending" },
+  CONFIRMED: { label: "Confirmada", chip: "chip-ready" },
+  CANCELLED: { label: "Cancelada", chip: "chip-muted" },
+  COMPLETED: { label: "Completada", chip: "chip-progress" }
+};
+
 export const CATEGORY_LABEL = {
   STARTER: "Entrada",
   MAIN: "Plato fuerte",

@@ -10,12 +10,22 @@ spring:
   sql:
     init:
       mode: never
+  flyway:
+    # El esquema lo crean y evolucionan las migraciones de db/migration (Flyway).
+    enabled: ${FLYWAY_ENABLED:true}
+    # Adopcion de bases creadas antes de Flyway (por ddl-auto=update): si el esquema
+    # ya tiene tablas y no hay historial, se registra la version 1 como linea base sin
+    # ejecutar V1. Una base vacia ejecuta V1 completa. Ver README, seccion "Migraciones".
+    baseline-on-migrate: true
+    baseline-version: 1
+    baseline-description: Esquema existente creado por Hibernate (ddl-auto=update)
+    # Nunca borrar el esquema desde la aplicacion (valor por defecto, explicito a proposito).
+    clean-disabled: true
   jpa:
     hibernate:
-      # En produccion debe fijarse JPA_DDL_AUTO=validate y migrar el esquema con
-      # una herramienta versionada (Flyway/Liquibase): 'update' deja que la app
-      # altere el esquema en caliente, lo que amplifica cualquier RCE o error.
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      # Hibernate solo comprueba que entidades y esquema coinciden; no lo modifica.
+      # Si no coinciden, la aplicacion no arranca (fallo seguro, sin tocar datos).
+      ddl-auto: ${JPA_DDL_AUTO:validate}
     # El SQL en consola filtra estructura y datos a los logs: apagado por defecto.
     show-sql: ${JPA_SHOW_SQL:false}
     properties:

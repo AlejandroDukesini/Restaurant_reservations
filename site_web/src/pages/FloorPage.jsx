@@ -11,7 +11,8 @@ import { CATEGORY_LABEL, ITEM_STATUS, ORDER_STATUS, money } from "../utils/statu
 export default function FloorPage() {
   const [tables, setTables] = useState(null); // null = aún sin primera carga
   const [tablesError, setTablesError] = useState("");
-  const [menu, setMenu] = useState([]);
+  const [menu, setMenu] = useState(null); // null = aún sin primera carga
+  const [menuError, setMenuError] = useState("");
   const [selectedTableId, setSelectedTableId] = useState(null);
   const [orders, setOrders] = useState([]);
   const [draft, setDraft] = useState({}); // menuItemId -> quantity
@@ -32,10 +33,19 @@ export default function FloorPage() {
     }
   }, []);
 
+  const loadMenu = useCallback(async () => {
+    setMenuError("");
+    try {
+      setMenu(await fetchMenu());
+    } catch (err) {
+      setMenuError(err.message);
+    }
+  }, []);
+
   useEffect(() => {
     loadTables();
-    fetchMenu().then(setMenu).catch((err) => setStatus(err.message));
-  }, [loadTables]);
+    loadMenu();
+  }, [loadTables, loadMenu]);
 
   const loadOrders = useCallback(async (tableId) => {
     if (!tableId) return;
@@ -65,7 +75,7 @@ export default function FloorPage() {
 
   const draftItems = Object.entries(draft);
   const draftTotal = draftItems.reduce((sum, [id, qty]) => {
-    const item = menu.find((m) => String(m.id) === String(id));
+    const item = menu?.find((m) => String(m.id) === String(id));
     return sum + (item ? item.price * qty : 0);
   }, 0);
 
@@ -141,45 +151,56 @@ export default function FloorPage() {
                 <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-champagne">
                   <Utensils className="h-4 w-4 text-gold" /> Nuevo pedido
                 </p>
-                <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                  {menu.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-2 border border-white/10 bg-white/[.03] px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm text-champagne">{item.name}</p>
-                        <p className="text-xs text-zinc-500">
-                          {CATEGORY_LABEL[item.category] || item.category} · {money(item.price)}
-                        </p>
+                {/* El menú tiene su propia carga: no se muestra vacío mientras llega. */}
+                {!menu ? (
+                  menuError ? (
+                    <ErrorState message={menuError} onRetry={loadMenu} />
+                  ) : (
+                    <Loader label="Cargando el menú..." className="py-8" />
+                  )
+                ) : menu.length === 0 ? (
+                  <p className="motion-fade text-xs text-zinc-500">No hay platos activos en el menú.</p>
+                ) : (
+                  <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                    {menu.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between gap-2 border border-white/10 bg-white/[.03] px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm text-champagne">{item.name}</p>
+                          <p className="text-xs text-zinc-500">
+                            {CATEGORY_LABEL[item.category] || item.category} · {money(item.price)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="grid h-7 w-7 place-items-center rounded-full border border-white/15 text-zinc-300 hover:border-gold/50"
+                            onClick={() => changeQty(item.id, -1)}
+                            aria-label="Quitar uno"
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </button>
+                          <span
+                            key={draft[item.id] || 0}
+                            className="motion-pop w-5 text-center text-sm text-champagne"
+                          >
+                            {draft[item.id] || 0}
+                          </span>
+                          <button
+                            type="button"
+                            className="grid h-7 w-7 place-items-center rounded-full border border-white/15 text-zinc-300 hover:border-gold/50"
+                            onClick={() => changeQty(item.id, 1)}
+                            aria-label="Agregar uno"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          className="grid h-7 w-7 place-items-center rounded-full border border-white/15 text-zinc-300 hover:border-gold/50"
-                          onClick={() => changeQty(item.id, -1)}
-                          aria-label="Quitar uno"
-                        >
-                          <Minus className="h-3.5 w-3.5" />
-                        </button>
-                        <span
-                          key={draft[item.id] || 0}
-                          className="motion-pop w-5 text-center text-sm text-champagne"
-                        >
-                          {draft[item.id] || 0}
-                        </span>
-                        <button
-                          type="button"
-                          className="grid h-7 w-7 place-items-center rounded-full border border-white/15 text-zinc-300 hover:border-gold/50"
-                          onClick={() => changeQty(item.id, 1)}
-                          aria-label="Agregar uno"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-sm text-zinc-400">Total</span>

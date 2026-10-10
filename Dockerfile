@@ -12,7 +12,7 @@ RUN pnpm install --frozen-lockfile
 COPY site_web/ ./
 RUN pnpm build
 
-# ---------- Etapa 2: compilar el backend (Kotlin + Spring Boot) ----------
+# ---------- Etapa 2: compilar el backend (Java + Spring Boot) ----------
 # La imagen oficial de Gradle trae la misma version que el wrapper (8.6) y evita
 # descargar la distribucion en cada build.
 FROM gradle:8.6-jdk21 AS backend

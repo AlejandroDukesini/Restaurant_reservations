@@ -13,9 +13,9 @@ piden, los **cocineros** ven la cola de cocina con la receta fija de cada plato 
 condimentos, ingredientes) y marcan cada plato como listo, y el **administrador** gestiona mesas,
 personal, menú y pedidos.
 
-- **Backend:** Kotlin 1.9 + Spring Boot 3.2 (JDK 21), JPA/Hibernate, PostgreSQL, seguridad JWT (RBAC).
+- **Backend:** Java 21 + Spring Boot 3.5, JPA/Hibernate, PostgreSQL con migraciones Flyway, seguridad JWT (RBAC).
 - **Frontend:** React 19 + Vite 8 + Tailwind CSS 4 + React Router 7.
-- **Calidad:** 115 pruebas de backend y 44 de frontend en CI. Detalle en [`TESTING.md`](TESTING.md) y
+- **Calidad:** 119 pruebas de backend (2 de ellas contra PostgreSQL real) y 57 de frontend en CI. Detalle en [`TESTING.md`](TESTING.md) y
   auditoría en [`QA_AUDIT.md`](QA_AUDIT.md).
 
 ---
@@ -53,9 +53,8 @@ notas de preparación) se define una vez y el cocinero la consulta desde la cola
 
 > **Qué se entrega:** una aplicación **web** (SPA React servida por el backend o por Vite) y una API
 > REST. El repositorio **no** contiene una PWA (no hay `manifest.webmanifest` ni service worker, así
-> que no se puede "instalar" desde el navegador) ni una app **Android**: el código Kotlin es el
-> backend Spring Boot, no genera APK/AAB. Una app Android sería un proyecto aparte (Android Gradle
-> Plugin) que consumiría esta misma API `/api`.
+> que no se puede "instalar" desde el navegador) ni una app **Android**. Una app Android nativa sería un proyecto
+> aparte (Kotlin + Android Gradle Plugin) que consumiría esta misma API `/api`.
 
 ---
 
@@ -79,10 +78,26 @@ Las credenciales por defecto son `postgres` / `postgres`. Si las tuyas son otras
 variables de entorno (ver [Configuración](#configuración-variables-de-entorno)) en lugar de editar
 `application.yml`.
 
-El esquema se crea solo (`ddl-auto: update`) y en el primer arranque se **siembran datos de demo**:
-un restaurante, 5 zonas, 16 mesas, 10 platos con receta y 5 usuarios.
+El esquema lo crea **Flyway** al arrancar (`src/main/resources/db/migration`) y en el primer
+arranque se **siembran datos de demo**: un restaurante, 5 zonas, 16 mesas, 10 platos con receta y
+5 usuarios.
 
-### 3. Backend (Kotlin / Spring Boot)
+#### Migraciones (Flyway) y bases existentes
+
+- **Base vacía:** Flyway ejecuta `V1__baseline_schema.sql`, que reproduce exactamente el esquema
+  que creaba `ddl-auto: update` (mismos tipos, restricciones e índices).
+- **Base creada antes de Flyway** (con datos): al no encontrar `flyway_schema_history`, Flyway
+  registra la versión 1 como *línea base* **sin ejecutar** V1 y sin tocar tablas ni datos
+  (`baseline-on-migrate`). Después Hibernate solo **valida** (`ddl-auto: validate`): si el esquema
+  no coincide con las entidades, la aplicación no arranca y no modifica nada.
+- Antes de adoptar una base de producción, compara su esquema con el de V1:
+  `pg_dump --schema-only --no-owner --no-privileges <base>`. Si a la base le falta algo (por
+  ejemplo, una versión antigua), arranca una vez la versión anterior de la app con
+  `JPA_DDL_AUTO=update` o crea la migración correspondiente; no edites V1.
+- Los cambios de esquema futuros van en archivos nuevos `V2__...sql`, `V3__...sql`; nunca se
+  modifica una migración ya aplicada. `clean` está deshabilitado.
+
+### 3. Backend (Java / Spring Boot)
 
 Gradle usa el JDK de `JAVA_HOME`, que debe ser un **JDK 21**. Si tu `JAVA_HOME` apunta a otra
 versión (p. ej. 25) y no quieres cambiarlo, fija el JDK 21 solo para Gradle en tu archivo de
@@ -150,7 +165,8 @@ guardes secretos en el repositorio** (`.env` y `.env.*` están en `.gitignore`).
 | `JWT_SECRET` | *(vacío)* | Clave HS512 (≥ 64 bytes). Si falta, se genera una clave efímera y los tokens caducan al reiniciar. **Obligatoria en producción.** |
 | `JWT_EXPIRATION` | `86400000` (24 h) | Vigencia del token en ms |
 | `SEED_ENABLED` / `SEED_PASSWORD` | `true` / `password123` | Siembra de demo. En un despliegue real: `SEED_ENABLED=false` o una contraseña única |
-| `JPA_DDL_AUTO` | `update` | Gestión del esquema (`validate` recomendado en producción) |
+| `JPA_DDL_AUTO` | `validate` | Hibernate valida el esquema; lo crean y evolucionan las migraciones Flyway |
+| `FLYWAY_ENABLED` | `true` | Ejecutar las migraciones al arrancar |
 | `JPA_SHOW_SQL` | `false` | Mostrar el SQL en el log |
 | `PORT` | `8081` | Puerto HTTP (Railway lo inyecta) |
 | `COOKIE_SECURE` | `true` | Atributo `Secure` de la cookie de sesión del contenedor |
@@ -265,7 +281,7 @@ En Railway, `railway.toml` construye con ese Dockerfile; define allí las variab
 ```
 reservas/
 ├── .github/workflows/ci.yml      # Pipeline de CI (backend, frontend, Docker)
-├── src/main/kotlin/com/restaurant/reservations/
+├── src/main/java/com/restaurant/reservations/
 │   ├── controller/   # Controladores REST y manejo global de errores
 │   ├── dto/          # Objetos de transferencia con validación
 │   ├── model/        # Entidades (User, Restaurant, Zone, Table, Order, OrderItem, MenuItem, Reservation)
@@ -274,8 +290,9 @@ reservas/
 │   ├── service/      # Lógica de negocio
 │   └── config/       # DataSeeder (datos de demo), CORS, servido del SPA
 ├── src/main/resources/application.yml
+├── src/main/resources/db/migration/   # Migraciones Flyway (V1 = esquema base)
 ├── src/test/
-│   ├── kotlin/.../   # Pruebas unitarias y de integración (JUnit 5 + MockMvc)
+│   ├── java/.../     # Pruebas unitarias y de integración (JUnit 5 + MockMvc)
 │   └── resources/application-test.yml   # Perfil de pruebas (H2, sin siembra)
 ├── site_web/         # Frontend React (Vite + Tailwind)
 │   ├── src/
@@ -290,7 +307,6 @@ reservas/
 ├── Dockerfile        # Build multi-etapa (frontend + backend) para despliegue
 ├── railway.toml
 ├── build.gradle.kts
-├── gradle.properties     # Opciones de Gradle/Kotlin (sin rutas locales)
 ├── gradlew, gradlew.bat  # Wrapper de Gradle 8.6
 ├── QA_AUDIT.md           # Auditoría técnica, defectos y riesgos
 ├── TESTING.md            # Estrategia de pruebas, comandos y trazabilidad
@@ -359,10 +375,11 @@ configura `SEED_PASSWORD` / `SEED_ENABLED` (QA-SEC-04).
 
 ## Limitaciones conocidas
 
-- Las reservas no tienen pantalla en el SPA; solo existen en la API.
-- El esquema se gestiona con `ddl-auto: update`, sin migraciones versionadas, y los estados de
-  pedido y reserva se guardan como ordinal.
-- Las pruebas de integración usan H2, no PostgreSQL. No hay pruebas E2E en navegador.
+- La gestión de reservas está en el panel de administración (pestaña *Reservas*); el mesero no
+  tiene vista de reservas porque la API no expone un listado por restaurante para ese rol.
+- Los estados de pedido y reserva se guardan como ordinal (QA-DATA-01).
+- Las pruebas de integración usan H2; las migraciones se prueban contra PostgreSQL real solo si se
+  define `TEST_POSTGRES_URL` (CI lo hace con un servicio PostgreSQL). No hay pruebas E2E en navegador.
 
 ---
 

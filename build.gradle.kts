@@ -1,11 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    id("org.springframework.boot") version "3.2.0"
-    id("io.spring.dependency-management") version "1.1.4"
-    kotlin("jvm") version "1.9.20"
-    kotlin("plugin.spring") version "1.9.20"
-    kotlin("plugin.jpa") version "1.9.20"
+    java
+    id("org.springframework.boot") version "3.5.16"
+    id("io.spring.dependency-management") version "1.1.7"
     jacoco
 }
 
@@ -25,12 +21,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.postgresql:postgresql:42.7.1")
-    implementation("io.jsonwebtoken:jjwt-api:0.12.3")
-    implementation("io.jsonwebtoken:jjwt-impl:0.12.3")
-    implementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
+    // Migraciones versionadas del esquema. Desde Flyway 10 el soporte de PostgreSQL va en modulo aparte.
+    implementation("org.flywaydb:flyway-core")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
+    // Version gestionada por Spring Boot (42.7.1 tenia CVE-2024-1597, corregido en 42.7.2).
+    runtimeOnly("org.postgresql:postgresql")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.7")
+    implementation("io.jsonwebtoken:jjwt-impl:0.12.7")
+    implementation("io.jsonwebtoken:jjwt-jackson:0.12.7")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
@@ -38,11 +36,11 @@ dependencies {
     testRuntimeOnly("com.h2database:h2")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs += "-Xjsr305=strict"
-        jvmTarget = "21"
-    }
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+    // Produccion corre sobre JRE 21 (Dockerfile): --release impide usar APIs de un JDK
+    // mas nuevo aunque Gradle se ejecute localmente con otro (p. ej. JDK 25).
+    options.release = 21
 }
 
 tasks.withType<Test> {

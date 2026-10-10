@@ -107,7 +107,7 @@ Severidad: **Alta** = pérdida de función principal o exposición de datos entr
 | QA-SEC-04 | Media (despliegue) | La siembra está activa por defecto con la contraseña `password123`, que además aparece en la pantalla de login. | `application.yml`, `LoginPage.jsx` | En un entorno real: `SEED_ENABLED=false` o `SEED_PASSWORD` único. Ocultar la ayuda de demo fuera de la demo. |
 | QA-SEC-05 | Decisión de diseño | Cualquier ADMIN puede crear restaurantes nuevos (`/api/admin/restaurants/register`). No existe un rol de plataforma. | `RestaurantController` | Definir quién puede dar de alta tenants. |
 | QA-DATA-01 | Media | `Order.status` y `Reservation.status` se guardan como **ordinal** (sin `@Enumerated(STRING)`): reordenar o insertar un valor en el enum corrompe los datos existentes. | Modelos; DDL generado (`tinyint check (status between 0 and 3)`) | Migrar a `STRING` con un script de datos. |
-| QA-DATA-02 | Media | Esquema gestionado con `ddl-auto: update`, sin migraciones versionadas. | `application.yml` | Introducir Flyway/Liquibase y `validate` en producción (ya lo recomienda el propio comentario del YAML). |
+| QA-DATA-02 | ~~Media~~ Resuelto | Esquema gestionado con `ddl-auto: update`, sin migraciones versionadas. | `application.yml` | Resuelto: Flyway (`V1__baseline_schema.sql`, adopción por línea base de bases existentes) y `ddl-auto: validate`. Verificado en base vacía y en copia de una base existente con datos. Falta comprobar el esquema de la base de producción antes de desplegar. |
 
 ### 5.3 Otros hallazgos de menor severidad (no corregidos)
 

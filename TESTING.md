@@ -43,13 +43,13 @@ Reportes que se generan (no se versionan):
 
 | Herramienta | Motivo |
 | --- | --- |
-| JUnit 5 + Spring Boot Test + MockMvc + spring-security-test | Ya estaban declaradas en `build.gradle.kts` y son las nativas de Spring Boot 3.2. MockMvc ejecuta la cadena real de filtros de seguridad. |
+| JUnit 5 + Spring Boot Test + MockMvc + spring-security-test | Ya estaban declaradas en `build.gradle.kts` y son las nativas de Spring Boot 3.5. MockMvc ejecuta la cadena real de filtros de seguridad. |
 | H2 en memoria (`testRuntimeOnly`) | Permite probar JPA, consultas y transacciones reales sin Docker ni PostgreSQL. Su versión la gestiona el BOM de Spring Boot. |
 | JaCoCo 0.8.11 (plugin integrado de Gradle) | Primera versión con soporte oficial para bytecode de Java 21. |
 | Vitest 5 + @vitest/coverage-v8 | Comparte la configuración y la transformación de Vite 8, que ya usa el proyecto. Vitest 5 declara compatibilidad con `vite ^8`. |
 | Testing Library (React, user-event, jest-dom) + jsdom | Prueba la UI como la usa una persona (roles, etiquetas, clics), no detalles de implementación. |
 
-No se añadieron librerías de mocks para Kotlin: las reglas de negocio se prueban contra la base de
+No se añadieron librerías de mocks: las reglas de negocio se prueban contra la base de
 datos real de pruebas, y las unidades aisladas no las necesitan.
 
 ## Diseño de la suite
@@ -73,23 +73,25 @@ datos real de pruebas, y las unidades aisladas no las necesitan.
 
 | Archivo | Tipo | Protege |
 | --- | --- | --- |
-| `src/test/.../security/JwtTokenProviderTest.kt` | Unitaria | Firma, expiración, emisor, `alg: none`, secreto débil, clave efímera |
-| `src/test/.../security/RateLimitingFilterTest.kt` | Unitaria | Límite por IP, 429 + `Retry-After`, rutas exentas, `X-Forwarded-For` |
-| `src/test/.../service/WebsiteGeneratorServiceTest.kt` | Unitaria | Escape HTML/JS (XSS) y path traversal en el slug |
-| `src/test/.../dto/RequestValidationTest.kt` | Unitaria | Límites de Bean Validation de todos los DTO de entrada |
-| `src/test/.../controller/AuthApiIntegrationTest.kt` | API | Registro (rol forzado, sin hash en la respuesta), login, no enumeración de cuentas |
-| `src/test/.../security/SecurityIntegrationTest.kt` | API / seguridad | 401/403 por rol, cabeceras CSP/HSTS/etc., CORS, 404/405 |
-| `src/test/.../controller/ReservationApiIntegrationTest.kt` | API / negocio | Aforo, solapamiento de franjas de 2 h, mapa, cancelación, IDOR |
-| `src/test/.../controller/OrderKitchenFlowIntegrationTest.kt` | API / flujo E2E de servidor | Pedido → cola de cocina → estado derivado; aislamiento entre restaurantes |
-| `src/test/.../controller/AdminManagementIntegrationTest.kt` | API / CRUD | Personal, menú, mesas, restaurantes; bajas lógicas; aislamiento |
-| `src/test/.../config/DataSeederIntegrationTest.kt` | Persistencia | Contenido e idempotencia de la siembra; `SEED_ENABLED=false` |
+| `src/test/.../security/JwtTokenProviderTest.java` | Unitaria | Firma, expiración, emisor, `alg: none`, secreto débil, clave efímera |
+| `src/test/.../security/RateLimitingFilterTest.java` | Unitaria | Límite por IP, 429 + `Retry-After`, rutas exentas, `X-Forwarded-For` |
+| `src/test/.../service/WebsiteGeneratorServiceTest.java` | Unitaria | Escape HTML/JS (XSS) y path traversal en el slug |
+| `src/test/.../dto/RequestValidationTest.java` | Unitaria | Límites de Bean Validation de todos los DTO de entrada |
+| `src/test/.../controller/AuthApiIntegrationTest.java` | API | Registro (rol forzado, sin hash en la respuesta), login, no enumeración de cuentas |
+| `src/test/.../security/SecurityIntegrationTest.java` | API / seguridad | 401/403 por rol, cabeceras CSP/HSTS/etc., CORS, 404/405 |
+| `src/test/.../controller/ReservationApiIntegrationTest.java` | API / negocio | Aforo, solapamiento de franjas de 2 h, mapa, cancelación, IDOR |
+| `src/test/.../controller/OrderKitchenFlowIntegrationTest.java` | API / flujo E2E de servidor | Pedido → cola de cocina → estado derivado; aislamiento entre restaurantes |
+| `src/test/.../controller/AdminManagementIntegrationTest.java` | API / CRUD | Personal, menú, mesas, restaurantes; bajas lógicas; aislamiento |
+| `src/test/.../config/DataSeederIntegrationTest.java` | Persistencia | Contenido e idempotencia de la siembra; `SEED_ENABLED=false` |
+| `src/test/.../config/PostgresSchemaIntegrationTest.java` | Persistencia (PostgreSQL) | Flyway aplica V1 en base vacía, Hibernate valida el esquema; pedido y reserva sobre PostgreSQL real. Solo con `TEST_POSTGRES_URL` (base cuyo nombre contenga `test`) |
+| `site_web/src/components/admin/ReservationsAdmin.test.jsx` | Componente | Reservas: orden, mesa, filtros, confirmar/cancelar, error y reintento, vacío, alta |
 | `site_web/src/api/client.test.js` | Unitaria UI | Cabeceras, query string, 401 → logout, mensajes de error, 204 |
 | `site_web/src/utils/status.test.js` | Unitaria UI | Formato de importes; catálogos alineados con los enums del backend |
 | `site_web/src/auth/AuthContext.test.jsx` | Componente | Sesión persistida, login sin guardar la contraseña, logout |
 | `site_web/src/App.test.jsx` | Componente | Enrutado y redirecciones por rol |
 | `site_web/src/pages/LoginPage.test.jsx` | Componente | Login correcto/incorrecto, cuentas demo, redirección con sesión |
 | `site_web/src/pages/KitchenPage.test.jsx` | Componente | Cola con receta, estado vacío, marcar listo, error de la API |
-| `site_web/src/pages/FloorPage.test.jsx` | Componente | Mapa por zonas, armado del pedido y total, envío, borrado, error |
+| `site_web/src/pages/FloorPage.test.jsx` | Componente | Mapa por zonas, armado del pedido y total, envío, borrado, error; carga y reintento del menú |
 
 ## Matriz de trazabilidad
 

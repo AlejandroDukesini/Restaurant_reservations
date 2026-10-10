@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { ClipboardList, LayoutGrid, UtensilsCrossed, Users } from "lucide-react";
+import { CalendarDays, ClipboardList, LayoutGrid, UtensilsCrossed, Users } from "lucide-react";
 import Layout from "../components/Layout";
 import StaffAdmin from "../components/admin/StaffAdmin";
 import MenuAdmin from "../components/admin/MenuAdmin";
 import TablesAdmin from "../components/admin/TablesAdmin";
 import OrdersAdmin from "../components/admin/OrdersAdmin";
+import ReservationsAdmin from "../components/admin/ReservationsAdmin";
 
 const TABS = [
   { key: "tables", label: "Mesas", icon: LayoutGrid, Component: TablesAdmin },
   { key: "staff", label: "Personal", icon: Users, Component: StaffAdmin },
   { key: "menu", label: "Menú", icon: UtensilsCrossed, Component: MenuAdmin },
-  { key: "orders", label: "Pedidos", icon: ClipboardList, Component: OrdersAdmin }
+  { key: "orders", label: "Pedidos", icon: ClipboardList, Component: OrdersAdmin },
+  { key: "reservations", label: "Reservas", icon: CalendarDays, Component: ReservationsAdmin }
 ];
 
 export default function AdminPage() {
