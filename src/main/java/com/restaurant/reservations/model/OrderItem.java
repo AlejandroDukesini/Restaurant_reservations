@@ -40,8 +40,14 @@ public class OrderItem {
     @Enumerated(EnumType.STRING)
     private OrderItemStatus status = OrderItemStatus.PENDING;
 
-    @Column
+    @Column(length = 500)
     private String notes;
+
+    /** Instantanea de la categoria al pedir: las metricas no cambian si se renombra. */
+    @Column(length = 80)
+    private String categoryName;
+
+    private Integer prepMinutes;
 
     protected OrderItem() {
     }
@@ -74,6 +80,12 @@ public class OrderItem {
 
     public OrderItemStatus getStatus() { return status; }
     public void setStatus(OrderItemStatus status) { this.status = status; }
+
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+
+    public Integer getPrepMinutes() { return prepMinutes; }
+    public void setPrepMinutes(Integer prepMinutes) { this.prepMinutes = prepMinutes; }
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }

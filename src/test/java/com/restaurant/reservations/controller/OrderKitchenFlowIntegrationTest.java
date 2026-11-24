@@ -135,18 +135,18 @@ class OrderKitchenFlowIntegrationTest extends IntegrationTest {
         mockMvc.perform(put("/api/cook/order-items/" + itemIds.get(0) + "/status").param("status", "preparing").with(authAs(cook)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("PREPARING"));
-        assertEquals(OrderStatus.IN_PROGRESS, orderRepository.findById(orderId).orElseThrow().getStatus());
+        assertEquals(OrderStatus.PREPARING, orderRepository.findById(orderId).orElseThrow().getStatus());
 
         // Un plato listo sale de la cola, pero el pedido sigue en curso.
         mockMvc.perform(put("/api/cook/order-items/" + itemIds.get(0) + "/status").param("status", "READY").with(authAs(cook)))
             .andExpect(status().isOk());
         mockMvc.perform(get("/api/cook/queue").with(authAs(cook))).andExpect(jsonPath("$.length()").value(1));
-        assertEquals(OrderStatus.IN_PROGRESS, orderRepository.findById(orderId).orElseThrow().getStatus());
+        assertEquals(OrderStatus.PREPARING, orderRepository.findById(orderId).orElseThrow().getStatus());
 
         // Todos listos -> pedido completado y cola vacia.
         mockMvc.perform(put("/api/cook/order-items/" + itemIds.get(1) + "/status").param("status", "READY").with(authAs(cook)))
             .andExpect(status().isOk());
-        assertEquals(OrderStatus.COMPLETED, orderRepository.findById(orderId).orElseThrow().getStatus());
+        assertEquals(OrderStatus.READY, orderRepository.findById(orderId).orElseThrow().getStatus());
         mockMvc.perform(get("/api/cook/queue").with(authAs(cook))).andExpect(jsonPath("$.length()").value(0));
     }
 
@@ -159,8 +159,9 @@ class OrderKitchenFlowIntegrationTest extends IntegrationTest {
 
         long itemId = body(mockMvc.perform(get("/api/employee/orders/" + orderId).with(authAs(waiter))).andReturn())
             .get("items").get(0).get("id").asLong();
+        // Antes se aceptaba en silencio; ahora la cocina recibe 409: el pedido ya no esta en cocina.
         mockMvc.perform(put("/api/cook/order-items/" + itemId + "/status").param("status", "PREPARING").with(authAs(cook)))
-            .andExpect(status().isOk());
+            .andExpect(status().isConflict());
 
         assertEquals(OrderStatus.CANCELLED, orderRepository.findById(orderId).orElseThrow().getStatus());
     }
@@ -174,8 +175,8 @@ class OrderKitchenFlowIntegrationTest extends IntegrationTest {
 
         mockMvc.perform(get("/api/cook/queue").with(authAs(foreignCook))).andExpect(jsonPath("$.length()").value(0));
         mockMvc.perform(put("/api/cook/order-items/" + itemId + "/status").param("status", "READY").with(authAs(foreignCook)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("Unauthorized access to order item"));
+            // 404 (no 400/403): no se confirma que el plato de otro restaurante exista.
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -222,9 +223,10 @@ class OrderKitchenFlowIntegrationTest extends IntegrationTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message").value("Invalid order status"));
 
+        // DELETE ya no borra fisicamente (trazabilidad y metricas): cancela el pedido.
         mockMvc.perform(delete("/api/employee/orders/" + orderId).with(authAs(admin)))
             .andExpect(status().isNoContent());
-        assertEquals(0, orderRepository.count());
+        assertEquals(OrderStatus.CANCELLED, orderRepository.findById(orderId).orElseThrow().getStatus());
     }
 
     @Test

@@ -1,11 +1,8 @@
 package com.restaurant.reservations.service;
 
-import com.restaurant.reservations.dto.OrderItemResponse;
 import com.restaurant.reservations.dto.OrderResponse;
 import com.restaurant.reservations.dto.ReservationResponse;
 import com.restaurant.reservations.exception.ValidationBusinessException;
-import com.restaurant.reservations.model.Order;
-import com.restaurant.reservations.model.OrderStatus;
 import com.restaurant.reservations.model.Reservation;
 import com.restaurant.reservations.repository.OrderRepository;
 import com.restaurant.reservations.repository.ReservationRepository;
@@ -43,14 +40,16 @@ public class AdminService {
     }
 
     public List<OrderResponse> getAllOrders() {
-        return orderRepository.findByRestaurantId(currentRestaurantId()).stream()
-            .map(AdminService::toResponse)
+        return orderRepository.findByRestaurantIdOrderByOrderDateDesc(currentRestaurantId()).stream()
+            .map(OrderMapper::toResponse)
             .toList();
     }
 
+    /** Pedidos aun en curso (cocina, listos, empaque o reparto). */
     public List<OrderResponse> getActiveOrders() {
-        return orderRepository.findByRestaurantIdAndStatus(currentRestaurantId(), OrderStatus.IN_PROGRESS).stream()
-            .map(AdminService::toResponse)
+        return orderRepository.findByRestaurantIdOrderByOrderDateDesc(currentRestaurantId()).stream()
+            .filter(o -> !o.getStatus().isFinal())
+            .map(OrderMapper::toResponse)
             .toList();
     }
 
@@ -74,31 +73,6 @@ public class AdminService {
             reservation.getCreatedAt(),
             reservation.getSpecialRequests(),
             reservation.isConfirmed()
-        );
-    }
-
-    private static OrderResponse toResponse(Order order) {
-        return new OrderResponse(
-            order.getId(),
-            order.getTable().getId(),
-            order.getTable().getTableNumber(),
-            order.getEmployee().getId(),
-            order.getEmployee().getName(),
-            order.getOrderDate(),
-            order.getStatus().name(),
-            order.getTotalAmount(),
-            order.getItems().stream()
-                .map(item -> new OrderItemResponse(
-                    item.getId(),
-                    item.getMenuItem() != null ? item.getMenuItem().getId() : null,
-                    item.getItemName(),
-                    item.getQuantity(),
-                    item.getPrice(),
-                    item.getStatus().name(),
-                    item.getNotes()
-                ))
-                .toList(),
-            order.getNotes()
         );
     }
 }

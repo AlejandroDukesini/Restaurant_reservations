@@ -1,28 +1,38 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import KitchenPage from "./KitchenPage";
 import { AuthProvider } from "../auth/AuthContext";
 import { writeSession } from "../api/client";
-import * as orderApi from "../api/orderApi";
+import * as opsApi from "../api/opsApi";
 
-const QUEUE_ITEM = {
-  orderItemId: 11,
+const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
+
+const TABLE_ORDER = {
   orderId: 5,
-  tableId: 2,
-  tableNumber: 9,
-  tableName: "Mesa Familiar",
+  channel: "DINE_IN",
+  label: "Mesa Familiar",
   employeeName: "Mesero Prueba",
-  itemName: "Risotto",
-  quantity: 2,
+  orderDate: minutesAgo(30),
   status: "PENDING",
-  notes: "Sin queso",
-  category: "MAIN",
-  protein: "Ninguna",
-  condiments: "Parmesano",
-  ingredients: "Arroz arborio",
-  preparationNotes: "18 min"
+  estimatedMinutes: 18,
+  notes: null,
+  items: [
+    {
+      orderItemId: 11, itemName: "Risotto", quantity: 2, status: "PENDING", notes: "Sin queso", categoryName: "Platos fuertes",
+      protein: "Ninguna", condiments: "Parmesano", ingredients: "Arroz arborio", preparationNotes: "18 min"
+    }
+  ]
+};
+const DELIVERY_ORDER = {
+  orderId: 6,
+  channel: "DELIVERY",
+  label: "Domicilio #6 · Rappi",
+  employeeName: "Gerente",
+  orderDate: minutesAgo(5),
+  status: "READY",
+  items: [{ orderItemId: 12, itemName: "Hamburguesa", quantity: 1, status: "READY" }]
 };
 
 function renderKitchen() {
@@ -38,50 +48,58 @@ function renderKitchen() {
 
 describe("KitchenPage", () => {
   beforeEach(() => {
-    vi.spyOn(orderApi, "fetchKitchenQueue");
-    vi.spyOn(orderApi, "updateItemStatus");
+    vi.spyOn(opsApi, "fetchKitchenBoard").mockResolvedValue([TABLE_ORDER, DELIVERY_ORDER]);
+    vi.spyOn(opsApi, "setKitchenItem").mockResolvedValue(null);
+    vi.spyOn(opsApi, "readyKitchenOrder").mockResolvedValue({});
+    vi.spyOn(opsApi, "startPacking").mockResolvedValue({});
+    vi.spyOn(opsApi, "callWaiter").mockResolvedValue(null);
   });
 
-  it("muestra cada plato con su mesa, cantidad y receta", async () => {
-    orderApi.fetchKitchenQueue.mockResolvedValue([QUEUE_ITEM]);
+  it("agrupa por pedido con receta, modificaciones y retraso frente al estimado", async () => {
     renderKitchen();
-
-    expect(await screen.findByRole("heading", { name: "2× Risotto" })).toBeInTheDocument();
-    expect(screen.getByText(/Mesa Familiar · #9/)).toBeInTheDocument();
-    expect(screen.getByText("Plato fuerte · Mesero Prueba")).toBeInTheDocument();
-    expect(screen.getByText("Arroz arborio")).toBeInTheDocument();
-    expect(screen.getByText("Sin queso")).toBeInTheDocument();
-    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    const card = await screen.findByRole("article", { name: "Pedido 5" });
+    expect(within(card).getByRole("heading", { name: "Mesa Familiar" })).toBeInTheDocument();
+    expect(within(card).getByText("Risotto")).toBeInTheDocument();
+    expect(within(card).getByText(/Sin queso/)).toBeInTheDocument();
+    expect(within(card).getByText("Arroz arborio", { exact: false })).toBeInTheDocument();
+    // 30 min frente a 18 estimados: se marca como retrasado.
+    expect(within(card).getByTitle("Transcurrido / estimado")).toHaveClass("is-late");
   });
 
-  it("muestra el estado vacio cuando no hay platos", async () => {
-    orderApi.fetchKitchenQueue.mockResolvedValue([]);
-    renderKitchen();
-    expect(await screen.findByText("No hay platos pendientes")).toBeInTheDocument();
-  });
-
-  it("marcar un plato como listo llama a la API y recarga la cola", async () => {
-    orderApi.fetchKitchenQueue.mockResolvedValueOnce([QUEUE_ITEM]).mockResolvedValueOnce([]);
-    orderApi.updateItemStatus.mockResolvedValue({ ...QUEUE_ITEM, status: "READY" });
+  it("marca un plato como listo y recarga el tablero", async () => {
     const user = userEvent.setup();
     renderKitchen();
-
-    await user.click(await screen.findByRole("button", { name: /Listo/ }));
-
-    expect(orderApi.updateItemStatus).toHaveBeenCalledWith(11, "READY");
-    expect(await screen.findByText("No hay platos pendientes")).toBeInTheDocument();
-    expect(orderApi.fetchKitchenQueue).toHaveBeenCalledTimes(2);
+    const card = await screen.findByRole("article", { name: "Pedido 5" });
+    await user.click(within(card).getByRole("button", { name: "Listo" }));
+    await waitFor(() => expect(opsApi.setKitchenItem).toHaveBeenCalledWith(11, "READY"));
+    expect(opsApi.fetchKitchenBoard).toHaveBeenCalledTimes(2);
   });
 
-  it("muestra el error de la API sin perder la cola", async () => {
-    orderApi.fetchKitchenQueue.mockResolvedValue([QUEUE_ITEM]);
-    orderApi.updateItemStatus.mockRejectedValue(new Error("Unauthorized access to order item"));
+  it("el domicilio listo pasa a empaque y la mesa puede llamar al mesero", async () => {
     const user = userEvent.setup();
     renderKitchen();
+    const delivery = await screen.findByRole("article", { name: "Pedido 6" });
+    await user.click(within(delivery).getByRole("button", { name: /Empezar empaque/ }));
+    await waitFor(() => expect(opsApi.startPacking).toHaveBeenCalledWith(6));
 
-    await user.click(await screen.findByRole("button", { name: /Preparando/ }));
+    const table = screen.getByRole("article", { name: "Pedido 5" });
+    await user.click(within(table).getByRole("button", { name: /Llamar mesero/ }));
+    expect(await screen.findByText("Se avisó al mesero.")).toBeInTheDocument();
+  });
 
-    expect(await screen.findByText("Unauthorized access to order item")).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole("heading", { name: "2× Risotto" })).toBeInTheDocument());
+  it("muestra el estado vacío cuando no hay pedidos", async () => {
+    opsApi.fetchKitchenBoard.mockResolvedValue([]);
+    renderKitchen();
+    expect(await screen.findByText("No hay pedidos pendientes")).toBeInTheDocument();
+  });
+
+  it("muestra el error de la API sin perder el tablero", async () => {
+    opsApi.setKitchenItem.mockRejectedValue(new Error("Kitchen progress can only move forward"));
+    const user = userEvent.setup();
+    renderKitchen();
+    const card = await screen.findByRole("article", { name: "Pedido 5" });
+    await user.click(within(card).getByRole("button", { name: /Preparando/ }));
+    expect(await screen.findByText("Kitchen progress can only move forward")).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Pedido 5" })).toBeInTheDocument();
   });
 });

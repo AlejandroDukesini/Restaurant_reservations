@@ -43,6 +43,20 @@ public class User {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** Permisos adicionales (lista blanca Permission), separados por comas. */
+    @Column(length = 500)
+    private String permissions;
+
+    @Column(length = 40)
+    private String phone;
+
+    /** Tema personal (JSON de ThemeSettings); null = el del grupo o restaurante. */
+    @Column(length = 20000)
+    private String theme;
+
+    @Column(name = "avatar_media_id", length = 36)
+    private String avatarMediaId;
+
     protected User() {
     }
 
@@ -74,6 +88,18 @@ public class User {
 
     public Restaurant getRestaurant() { return restaurant; }
     public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
+
+    public String getPermissions() { return permissions; }
+    public void setPermissions(String permissions) { this.permissions = permissions; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getTheme() { return theme; }
+    public void setTheme(String theme) { this.theme = theme; }
+
+    public String getAvatarMediaId() { return avatarMediaId; }
+    public void setAvatarMediaId(String avatarMediaId) { this.avatarMediaId = avatarMediaId; }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }

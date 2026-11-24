@@ -1,7 +1,10 @@
 package com.restaurant.reservations.repository;
 
 import com.restaurant.reservations.model.Order;
+import com.restaurant.reservations.model.OrderChannel;
 import com.restaurant.reservations.model.OrderStatus;
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,35 +18,56 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByTableId(Long tableId);
 
-    List<Order> findByStatus(OrderStatus status);
+    Optional<Order> findByIdAndRestaurantId(Long id, Long restaurantId);
 
-    Optional<Order> findByIdAndEmployeeId(Long id, Long employeeId);
+    boolean existsByTableId(Long tableId);
 
-    @Query("SELECT o FROM Order o WHERE o.table.restaurant.id = :restaurantId")
-    List<Order> findByRestaurantId(@Param("restaurantId") Long restaurantId);
+    List<Order> findByRestaurantIdOrderByOrderDateDesc(Long restaurantId);
 
-    @Query("SELECT o FROM Order o WHERE o.table.restaurant.id = :restaurantId AND o.status = :status")
-    List<Order> findByRestaurantIdAndStatus(
-        @Param("restaurantId") Long restaurantId,
-        @Param("status") OrderStatus status
-    );
+    List<Order> findByRestaurantIdAndStatus(Long restaurantId, OrderStatus status);
 
-    // Cola de cocina: pedidos del restaurante que no están terminados/cancelados.
-    // JOIN FETCH resuelve en UNA sola consulta todo lo que la cola necesita renderizar
-    // (platos, su receta, mesa, restaurante y mesero), eliminando el N+1 que generaba
-    // el acceso lazy a o.items / o.table.restaurant / o.employee / item.menuItem.
+    List<Order> findBySessionIdOrderByIdAsc(Long sessionId);
+
+    @Query("SELECT o FROM Order o WHERE o.session.id IN :sessionIds")
+    List<Order> findBySessionIds(@Param("sessionIds") Collection<Long> sessionIds);
+
+    // Cola de cocina: JOIN FETCH resuelve en una consulta platos, receta, mesa y mesero (sin N+1).
     @Query(
         "SELECT DISTINCT o FROM Order o "
             + "LEFT JOIN FETCH o.items i "
             + "LEFT JOIN FETCH i.menuItem "
-            + "JOIN FETCH o.table t "
-            + "JOIN FETCH t.restaurant "
+            + "LEFT JOIN FETCH o.table t "
             + "JOIN FETCH o.employee "
-            + "WHERE t.restaurant.id = :restaurantId "
+            + "WHERE o.restaurantId = :restaurantId "
             + "AND o.status IN :statuses ORDER BY o.orderDate ASC"
     )
     List<Order> findActiveByRestaurant(
         @Param("restaurantId") Long restaurantId,
-        @Param("statuses") List<OrderStatus> statuses
+        @Param("statuses") Collection<OrderStatus> statuses
+    );
+
+    @Query("SELECT o FROM Order o WHERE o.restaurantId = :restaurantId AND o.channel = :channel "
+        + "AND (o.status NOT IN :finals OR o.orderDate >= :since) ORDER BY o.orderDate DESC")
+    List<Order> findChannelBoard(
+        @Param("restaurantId") Long restaurantId,
+        @Param("channel") OrderChannel channel,
+        @Param("finals") Collection<OrderStatus> finals,
+        @Param("since") LocalDateTime since
+    );
+
+    @Query("SELECT o FROM Order o WHERE o.driver.id = :driverId "
+        + "AND (o.status NOT IN :finals OR o.orderDate >= :since) ORDER BY o.orderDate DESC")
+    List<Order> findDriverBoard(
+        @Param("driverId") Long driverId,
+        @Param("finals") Collection<OrderStatus> finals,
+        @Param("since") LocalDateTime since
+    );
+
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items WHERE o.restaurantId = :restaurantId "
+        + "AND o.orderDate >= :from AND o.orderDate < :to")
+    List<Order> findForMetrics(
+        @Param("restaurantId") Long restaurantId,
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
     );
 }

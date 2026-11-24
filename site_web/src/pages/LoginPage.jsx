@@ -6,7 +6,8 @@ import { homePathForRole, useAuth } from "../auth/AuthContext";
 const DEMO_ACCOUNTS = [
   { label: "Administrador", email: "admin@maisonnoir.com" },
   { label: "Mesero", email: "mesero1@maisonnoir.com" },
-  { label: "Cocinero", email: "cocina1@maisonnoir.com" }
+  { label: "Cocinero", email: "cocina1@maisonnoir.com" },
+  { label: "Domiciliario", email: "domicilios1@maisonnoir.com" }
 ];
 
 export default function LoginPage() {

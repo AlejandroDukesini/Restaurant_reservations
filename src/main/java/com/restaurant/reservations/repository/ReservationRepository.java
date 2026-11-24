@@ -70,4 +70,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
         @Param("endAt") LocalDateTime endAt,
         @Param("blockingStatuses") Collection<ReservationStatus> blockingStatuses
     );
+
+    boolean existsByTableId(Long tableId);
 }

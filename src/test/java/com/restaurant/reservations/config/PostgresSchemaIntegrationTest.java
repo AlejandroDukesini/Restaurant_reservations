@@ -54,7 +54,7 @@ class PostgresSchemaIntegrationTest extends IntegrationTest {
     void flywayDejaElEsquemaEnLaUltimaVersion() {
         MigrationInfo current = flyway.info().current();
         assertNotNull(current, "sin historial de Flyway");
-        assertEquals("1", current.getVersion().getVersion());
+        assertEquals("3", current.getVersion().getVersion());
         assertEquals(0, flyway.info().pending().length, "quedan migraciones pendientes");
     }
 
@@ -82,7 +82,7 @@ class PostgresSchemaIntegrationTest extends IntegrationTest {
             .get(0).get("orderItemId").asLong();
         mockMvc.perform(put("/api/cook/order-items/" + itemId + "/status").param("status", "READY").with(authAs(cook)))
             .andExpect(status().isOk());
-        assertEquals(OrderStatus.COMPLETED, orderRepository.findById(orderId).orElseThrow().getStatus());
+        assertEquals(OrderStatus.READY, orderRepository.findById(orderId).orElseThrow().getStatus());
 
         LocalDateTime at = LocalDateTime.now().plusDays(5).withHour(20).withMinute(0).withSecond(0).withNano(0);
         mockMvc.perform(

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public record StaffRequest(
     @NotBlank
@@ -21,11 +22,18 @@ public record StaffRequest(
     @Size(min = 12, max = 128, message = "La contrasena debe tener entre 12 y 128 caracteres")
     String password,
 
-    // EMPLOYEE | COOK
+    // EMPLOYEE | COOK | DELIVERY (nunca ADMIN: no se crean gerentes desde aqui)
     @NotNull
     String role,
 
-    Boolean active
+    Boolean active,
+
+    @Size(max = 40)
+    String phone,
+
+    // Permisos adicionales de la lista blanca Permission; null = no cambiar.
+    @Size(max = 20)
+    List<String> permissions
 ) {
     public StaffRequest {
         if (active == null) {

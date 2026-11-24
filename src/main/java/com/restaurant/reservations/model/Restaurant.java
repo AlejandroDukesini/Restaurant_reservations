@@ -57,6 +57,16 @@ public class Restaurant {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** JSON de ThemeSettings (personalizacion visual); null = tema por defecto. */
+    @Column(length = 20000)
+    private String theme;
+
+    @Column(name = "logo_media_id", length = 36)
+    private String logoMediaId;
+
+    @Column(name = "cover_media_id", length = 36)
+    private String coverMediaId;
+
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RestaurantTable> tables = new ArrayList<>();
 
@@ -120,6 +130,15 @@ public class Restaurant {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public String getTheme() { return theme; }
+    public void setTheme(String theme) { this.theme = theme; }
+
+    public String getLogoMediaId() { return logoMediaId; }
+    public void setLogoMediaId(String logoMediaId) { this.logoMediaId = logoMediaId; }
+
+    public String getCoverMediaId() { return coverMediaId; }
+    public void setCoverMediaId(String coverMediaId) { this.coverMediaId = coverMediaId; }
 
     public List<RestaurantTable> getTables() { return tables; }
     public List<Zone> getZones() { return zones; }

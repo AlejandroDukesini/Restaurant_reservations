@@ -24,8 +24,8 @@ export function SessionGate() {
   );
 }
 
-export default function ProtectedRoute({ roles, children }) {
-  const { isAuthenticated, role, status } = useAuth();
+export default function ProtectedRoute({ roles, permission, children }) {
+  const { isAuthenticated, role, status, can } = useAuth();
   const location = useLocation();
 
   // Sin rol confirmado no se muestra contenido restringido ni se redirige.
@@ -35,7 +35,8 @@ export default function ProtectedRoute({ roles, children }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (roles && !roles.includes(role)) {
+  // `permission` refina por permisos adicionales; el servidor vuelve a comprobarlo todo.
+  if ((roles && !roles.includes(role)) || (permission && !permission(role, can))) {
     // Autenticado pero sin permiso para esta vista: al panel de su rol.
     return <Navigate to={homePathForRole(role)} replace />;
   }

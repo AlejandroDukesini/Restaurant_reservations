@@ -11,6 +11,8 @@ export function homePathForRole(role) {
       return "/admin";
     case "COOK":
       return "/cocina";
+    case "DELIVERY":
+      return "/entregas";
     case "EMPLOYEE":
     default:
       return "/piso";
@@ -36,7 +38,10 @@ export function AuthProvider({ children }) {
           userId: user.userId,
           email: user.email,
           role: user.role,
-          restaurantId: user.restaurantId
+          restaurantId: user.restaurantId,
+          name: user.name || stored.name,
+          permissions: user.permissions || [],
+          avatarUrl: user.avatarUrl || null
         };
         writeSession(next);
         setSession(next);
@@ -67,12 +72,37 @@ export function AuthProvider({ children }) {
       email: data.email,
       role: data.role,
       restaurantId: data.restaurantId,
-      name: data.email
+      name: data.email,
+      permissions: []
     };
     writeSession(next);
     setSession(next);
     setStatus("ready");
+    // Nombre y permisos vigentes salen de /me (no del token); en segundo plano.
+    fetchCurrentUser()
+      .then((user) => {
+        const stored = readSession();
+        if (!stored || stored.userId !== user.userId) return;
+        const merged = {
+          ...stored,
+          name: user.name || stored.name,
+          permissions: user.permissions || [],
+          avatarUrl: user.avatarUrl || null
+        };
+        writeSession(merged);
+        setSession(merged);
+      })
+      .catch(() => {});
     return next;
+  }, []);
+
+  /** Refleja en la sesión el nombre y la foto recién guardados en el perfil. */
+  const updateProfile = useCallback((changes) => {
+    const stored = readSession();
+    if (!stored) return;
+    const next = { ...stored, ...changes };
+    writeSession(next);
+    setSession(next);
   }, []);
 
   const logout = useCallback(() => {
@@ -86,14 +116,19 @@ export function AuthProvider({ children }) {
       session,
       isAuthenticated: Boolean(session?.token),
       role: session?.role ?? null,
+      userId: session?.userId ?? null,
       restaurantId: session?.restaurantId ?? null,
+      permissions: session?.permissions ?? [],
+      // Solo decide qué se muestra; el servidor vuelve a autorizar cada operación.
+      can: (permission) => session?.role === "ADMIN" || (session?.permissions || []).includes(permission),
       status,
       sessionError,
       retrySession: verifySession,
       login,
-      logout
+      logout,
+      updateProfile
     }),
-    [session, status, sessionError, verifySession, login, logout]
+    [session, status, sessionError, verifySession, login, logout, updateProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

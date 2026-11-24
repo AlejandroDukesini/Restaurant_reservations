@@ -161,9 +161,10 @@ class AdminManagementIntegrationTest extends IntegrationTest {
                 put("/api/admin/staff/" + foreignWaiter.getId()).with(authAs(admin))
                     .with(json(staffBody(foreignWaiter.getEmail(), "EMPLOYEE", TestData.PASSWORD)))
             )
-            .andExpect(status().isBadRequest());
+            // 404: no se confirma que exista personal de otro restaurante.
+            .andExpect(status().isNotFound());
         mockMvc.perform(delete("/api/admin/staff/" + foreignWaiter.getId()).with(authAs(admin)))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isNotFound());
         assertTrue(userRepository.findById(foreignWaiter.getId()).orElseThrow().isActive());
     }
 
@@ -179,7 +180,8 @@ class AdminManagementIntegrationTest extends IntegrationTest {
                     )))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.category").value("DESSERT"))
+                // Categorias libres: el codigo antiguo "dessert" se resuelve a la categoria "Postres".
+                .andExpect(jsonPath("$.category").value("Postres"))
                 .andReturn()
         ).get("id").asLong();
 
@@ -195,22 +197,23 @@ class AdminManagementIntegrationTest extends IntegrationTest {
 
         mockMvc.perform(delete("/api/admin/menu/" + id).with(authAs(admin))).andExpect(status().isNoContent());
         mockMvc.perform(get("/api/staff/menu").with(authAs(waiter))).andExpect(jsonPath("$.length()").value(0));
-        // Baja logica: el registro sigue existiendo para los pedidos historicos.
-        assertFalse(menuItemRepository.findById(id).orElseThrow().isActive());
+        // Nunca se pidio: se elimina de verdad. (Un plato con pedidos se archiva; ver MenuAndDeliveryIntegrationTest.)
+        assertTrue(menuItemRepository.findById(id).isEmpty());
     }
 
     @Test
     @DisplayName("menu rechaza categoria invalida, precio negativo y edicion entre restaurantes")
     void menuRechazaCategoriaInvalidaPrecioNegativoYEdicionAjena() throws Exception {
-        mockMvc.perform(post("/api/admin/menu").with(authAs(admin)).with(json(fields("name", "X", "category", "SNACK", "price", 1.0))))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("Invalid category: SNACK"));
+        // Las categorias ya no son una lista fija; lo que no se admite es usar una categoria ajena.
+        long foreignCategory = data.category(foreignAdmin.getRestaurant(), "Ajena").getId();
+        mockMvc.perform(post("/api/admin/menu").with(authAs(admin)).with(json(fields("name", "X", "categoryId", foreignCategory, "price", 1.0))))
+            .andExpect(status().isNotFound());
         mockMvc.perform(post("/api/admin/menu").with(authAs(admin)).with(json(fields("name", "X", "price", -1.0))))
             .andExpect(status().isBadRequest());
 
         MenuItem dish = data.menuItem(restaurant);
         mockMvc.perform(put("/api/admin/menu/" + dish.getId()).with(authAs(foreignAdmin)).with(json(fields("name", "Hackeado", "price", 0.0))))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isNotFound());
         assertEquals(dish.getName(), menuItemRepository.findById(dish.getId()).orElseThrow().getName());
     }
 
@@ -240,9 +243,10 @@ class AdminManagementIntegrationTest extends IntegrationTest {
             .andExpect(jsonPath("$.gridX").value(4))
             .andExpect(jsonPath("$.zoneId").doesNotExist());
 
+        // Sin historial (atenciones, pedidos, reservas) la mesa se elimina de verdad.
         mockMvc.perform(delete("/api/employee/tables/" + id).with(authAs(admin))).andExpect(status().isNoContent());
         mockMvc.perform(get("/api/staff/tables").with(authAs(admin))).andExpect(jsonPath("$.length()").value(0));
-        assertFalse(tableRepository.findById(id).orElseThrow().isActive());
+        assertTrue(tableRepository.findById(id).isEmpty());
     }
 
     @Test
@@ -259,7 +263,7 @@ class AdminManagementIntegrationTest extends IntegrationTest {
                     "tableNumber", 1, "floor", 1, "capacity", 2, "price", 10.0, "zoneId", foreignZone.getId()
                 )))
             )
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("Zone not found for restaurant"));
 
         assertTrue(tableRepository.findById(foreignTable.getId()).orElseThrow().isActive());
@@ -292,8 +296,11 @@ class AdminManagementIntegrationTest extends IntegrationTest {
 
         long ownOrder = order(ownWaiter, ownTable.getId(), ownDish.getId());
         long foreignOrder = order(foreignWaiter, foreignTable.getId(), foreignDish.getId());
-        for (Map.Entry<Long, User> entry : Map.of(ownOrder, ownWaiter, foreignOrder, foreignWaiter).entrySet()) {
-            mockMvc.perform(put("/api/employee/orders/" + entry.getKey() + "/status").param("status", "IN_PROGRESS").with(authAs(entry.getValue())))
+        // El progreso de cocina lo marca la cocina (antes lo cambiaba el mesero por /status).
+        User ownCook = data.user(Role.COOK, restaurant);
+        User foreignCook = data.user(Role.COOK, foreignRestaurant);
+        for (Map.Entry<Long, User> entry : Map.of(ownOrder, ownCook, foreignOrder, foreignCook).entrySet()) {
+            mockMvc.perform(post("/api/kitchen/orders/" + entry.getKey() + "/start").with(authAs(entry.getValue())))
                 .andExpect(status().isOk());
         }
 

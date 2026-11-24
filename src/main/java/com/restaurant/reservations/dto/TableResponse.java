@@ -13,6 +13,9 @@ public record TableResponse(
     String zoneName,
     int gridX,
     int gridY,
-    String status
+    String status,
+    Long groupId,
+    String groupName,
+    int sortOrder
 ) {
 }

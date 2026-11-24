@@ -32,10 +32,15 @@ class DataSeederIntegrationTest extends IntegrationTest {
     @Autowired private UserRepository userRepository;
     @Autowired private MenuItemRepository menuItemRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private com.restaurant.reservations.repository.MenuCategoryRepository categoryRepository;
+    @Autowired private com.restaurant.reservations.repository.StaffGroupRepository groupRepository;
+    @Autowired private com.restaurant.reservations.repository.DeliveryPlatformRepository platformRepository;
+    @Autowired private com.restaurant.reservations.repository.DeliveryDriverRepository driverRepository;
 
     private DataSeeder seeder(boolean enabled) {
         return new DataSeeder(
             restaurantRepository, zoneRepository, tableRepository, userRepository, menuItemRepository,
+            categoryRepository, groupRepository, platformRepository, driverRepository,
             passwordEncoder, enabled, SEED_PASSWORD
         );
     }
@@ -51,11 +56,15 @@ class DataSeederIntegrationTest extends IntegrationTest {
         assertEquals(5, zoneRepository.count());
         assertEquals(16, tableRepository.count());
         assertEquals(10, menuItemRepository.count());
+        assertEquals(4, categoryRepository.count());
+        assertEquals(3, groupRepository.count());
+        assertEquals(3, platformRepository.count());
+        assertEquals(1, driverRepository.count());
 
         List<User> users = userRepository.findAll();
-        assertEquals(5, users.size());
+        assertEquals(6, users.size());
         assertEquals(
-            Map.of(Role.ADMIN, 1L, Role.EMPLOYEE, 2L, Role.COOK, 2L),
+            Map.of(Role.ADMIN, 1L, Role.EMPLOYEE, 2L, Role.COOK, 2L, Role.DELIVERY, 1L),
             users.stream().collect(Collectors.groupingBy(User::getRole, Collectors.counting()))
         );
         // La contrasena configurada (SEED_PASSWORD) es la que queda, nunca en claro.

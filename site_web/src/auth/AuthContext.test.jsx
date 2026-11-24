@@ -56,7 +56,9 @@ describe("AuthProvider", () => {
       email: "admin@example.test",
       role: "ADMIN",
       restaurantId: 1,
-      name: "admin@example.test"
+      name: "admin@example.test",
+      // Los permisos vigentes llegan despues desde /me, nunca del cliente.
+      permissions: []
     });
     // La contrasena nunca se persiste.
     expect(JSON.stringify(readSession())).not.toContain("secreto");

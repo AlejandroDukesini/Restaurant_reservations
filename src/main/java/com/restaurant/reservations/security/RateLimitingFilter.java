@@ -46,6 +46,14 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private final boolean trustForwardedHeader;
     private final ConcurrentHashMap<String, Window> counters = new ConcurrentHashMap<>();
 
+    // Escrituras autenticadas que se pueden abusar para inundar a otros usuarios (mensajes)
+    // o la base de datos (subidas). Inyeccion por campo para conservar el constructor.
+    @Value("${app.rate-limit.chat-messages-per-minute:60}")
+    private int chatLimit = 60;
+
+    @Value("${app.rate-limit.uploads-per-minute:20}")
+    private int uploadLimit = 20;
+
     private record Window(Instant startedAt, AtomicInteger hits) {
     }
 
@@ -103,6 +111,12 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
         if (path.startsWith("/api/public/")) {
             return publicLimit;
+        }
+        if (path.startsWith("/api/chat/")) {
+            return chatLimit;
+        }
+        if (path.startsWith("/api/admin/media") || path.startsWith("/api/me/avatar")) {
+            return uploadLimit;
         }
         return null;
     }

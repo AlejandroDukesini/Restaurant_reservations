@@ -35,6 +35,15 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      # Imagenes de logo/platos: el SPA las reduce antes de subir; MediaService valida 3 MB.
+      max-file-size: 3MB
+      max-request-size: 4MB
+  mvc:
+    async:
+      # Las conexiones SSE las cierra RealtimeService (30 min); el cliente reconecta solo.
+      request-timeout: -1
 
 server:
   # Railway inyecta PORT y espera que el contenedor escuche ahi.
@@ -73,6 +82,11 @@ app:
     enabled: ${SEED_ENABLED:true}
     password: ${SEED_PASSWORD:password123}
   # Limite de peticiones por IP para los endpoints sensibles (login y reserva publica).
+  media:
+    max-bytes: ${MEDIA_MAX_BYTES:3145728}
+  realtime:
+    timeout-ms: ${REALTIME_TIMEOUT_MS:1800000}
+    heartbeat-ms: ${REALTIME_HEARTBEAT_MS:20000}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     login-attempts-per-minute: ${RATE_LIMIT_LOGIN:10}

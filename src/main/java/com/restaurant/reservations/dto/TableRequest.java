@@ -9,6 +9,7 @@ public record TableRequest(
     @Min(1)
     Integer tableNumber,
 
+    @jakarta.validation.constraints.Size(max = 120)
     String name,
 
     @NotNull
@@ -29,7 +30,16 @@ public record TableRequest(
     Integer gridX,
 
     @Min(1)
-    Integer gridY
+    Integer gridY,
+
+    // Grupo (area/sede) responsable; null = cualquier mesero del restaurante.
+    Long groupId,
+
+    @Min(0)
+    Integer sortOrder,
+
+    // AVAILABLE | MAINTENANCE (estado operativo; la ocupacion la llevan las sesiones)
+    String status
 ) {
     public TableRequest {
         if (gridX == null) {
@@ -37,6 +47,9 @@ public record TableRequest(
         }
         if (gridY == null) {
             gridY = 1;
+        }
+        if (sortOrder == null) {
+            sortOrder = 0;
         }
     }
 }

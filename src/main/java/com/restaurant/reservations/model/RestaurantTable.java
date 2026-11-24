@@ -61,6 +61,14 @@ public class RestaurantTable {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** Grupo (area/sede) responsable de la mesa; opcional. */
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    private StaffGroup group;
+
+    @Column(nullable = false)
+    private int sortOrder = 0;
+
     @OneToMany(mappedBy = "table", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Reservation> reservations = new ArrayList<>();
 
@@ -116,6 +124,17 @@ public class RestaurantTable {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public StaffGroup getGroup() { return group; }
+    public void setGroup(StaffGroup group) { this.group = group; }
+
+    public int getSortOrder() { return sortOrder; }
+    public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
+
+    /** Nombre personalizado o "Mesa N". */
+    public String getDisplayName() {
+        return name != null && !name.isBlank() ? name : "Mesa " + tableNumber;
+    }
 
     public List<Reservation> getReservations() { return reservations; }
     public List<Order> getOrders() { return orders; }

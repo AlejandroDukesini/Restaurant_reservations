@@ -22,9 +22,9 @@ export function clearSession() {
 
 export async function apiFetch(
   path,
-  { method = "GET", body, auth = true, params, redirectOnUnauthorized = true } = {}
+  { method = "GET", body, auth = true, params, redirectOnUnauthorized = true, headers: extraHeaders, formData } = {}
 ) {
-  const headers = {};
+  const headers = { ...(extraHeaders || {}) };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
   if (auth) {
@@ -43,7 +43,7 @@ export async function apiFetch(
     response = await fetch(url, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: formData !== undefined ? formData : body !== undefined ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
     });
   } catch (err) {

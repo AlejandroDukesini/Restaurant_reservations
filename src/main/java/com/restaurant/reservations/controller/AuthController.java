@@ -5,7 +5,11 @@ import com.restaurant.reservations.dto.LoginResponse;
 import com.restaurant.reservations.dto.RegisterRequest;
 import com.restaurant.reservations.dto.RegisterResponse;
 import com.restaurant.reservations.dto.SessionUserResponse;
+import com.restaurant.reservations.model.User;
+import com.restaurant.reservations.repository.UserRepository;
 import com.restaurant.reservations.security.UserPrincipal;
+import com.restaurant.reservations.service.AccessService;
+import com.restaurant.reservations.service.MediaService;
 import com.restaurant.reservations.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UserRepository userRepository) {
         this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/register")
@@ -39,11 +45,15 @@ public class AuthController {
     // El filtro JWT ya rechaza tokens caducados y usuarios dados de baja.
     @GetMapping("/me")
     public SessionUserResponse me(@AuthenticationPrincipal UserPrincipal principal) {
+        User user = userRepository.findById(principal.getId()).orElseThrow();
         return new SessionUserResponse(
             principal.getId(),
             principal.getEmail(),
             principal.getRole().name(),
-            principal.getRestaurantId()
+            principal.getRestaurantId(),
+            user.getName(),
+            AccessService.permissionsOf(user).stream().map(Enum::name).sorted().toList(),
+            MediaService.url(user.getAvatarMediaId())
         );
     }
 }

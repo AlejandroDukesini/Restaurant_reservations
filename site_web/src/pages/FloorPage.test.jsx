@@ -1,31 +1,46 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import FloorPage from "./FloorPage";
 import { AuthProvider } from "../auth/AuthContext";
 import { writeSession } from "../api/client";
-import * as tableApi from "../api/tableApi";
 import * as menuApi from "../api/menuApi";
-import * as orderApi from "../api/orderApi";
+import * as opsApi from "../api/opsApi";
 
-const TABLES = [
-  { id: 1, tableNumber: 9, name: "Mesa Familiar", capacity: 8, zoneName: "Zona Central", gridX: 1, gridY: 1, status: "AVAILABLE" },
-  { id: 2, tableNumber: 11, name: null, capacity: 2, zoneName: "Barra", gridX: 1, gridY: 1, status: "OCCUPIED" }
+const BOARD = [
+  {
+    id: 1, tableNumber: 9, name: "Mesa Familiar", displayName: "Mesa Familiar", zoneName: "Zona Central", capacity: 8,
+    liveState: "AVAILABLE", readyOrders: 0, activeOrders: 0, sessionTotal: 0, sessionId: null
+  },
+  {
+    id: 2, tableNumber: 11, name: null, displayName: "Mesa 11", zoneName: "Barra", capacity: 2,
+    liveState: "READY", readyOrders: 1, activeOrders: 1, sessionTotal: 32, sessionId: 50, waiterName: "Carlos",
+    openedAt: new Date(Date.now() - 20 * 60000).toISOString()
+  }
 ];
 const MENU = [
-  { id: 100, name: "Risotto", category: "MAIN", price: 32 },
-  { id: 200, name: "Vino", category: "DRINK", price: 12.5 }
+  { id: 100, name: "Risotto", category: "Platos fuertes", price: 32, available: true, prepMinutes: 20 },
+  { id: 200, name: "Vino", category: "Bebidas", price: 12.5, available: true },
+  { id: 300, name: "Flan", category: "Postres", price: 8, available: false }
 ];
-const EXISTING_ORDER = {
-  id: 77,
-  status: "IN_PROGRESS",
-  totalAmount: 32,
-  items: [{ id: 1, quantity: 1, itemName: "Risotto", status: "PREPARING" }]
+const SESSION = {
+  id: 50,
+  tableId: 2,
+  status: "OPEN",
+  waiterName: "Carlos",
+  openedAt: new Date().toISOString(),
+  total: 32,
+  orders: [
+    {
+      id: 77, employeeId: 9, status: "READY", totalAmount: 32, orderDate: new Date().toISOString(),
+      items: [{ id: 1, quantity: 1, itemName: "Risotto", status: "READY", notes: "Sin queso" }]
+    }
+  ]
 };
 
 function renderFloor() {
-  writeSession({ token: "t", role: "EMPLOYEE", email: "mesero@example.test" });
+  writeSession({ token: "t", role: "EMPLOYEE", email: "mesero@example.test", userId: 9 });
   return render(
     <MemoryRouter>
       <AuthProvider>
@@ -35,114 +50,93 @@ function renderFloor() {
   );
 }
 
-function dishRow(name) {
-  return screen.getByText(name).closest("div.flex.items-center.justify-between");
-}
-
-describe("FloorPage (flujo del mesero)", () => {
+describe("FloorPage (operación de sala)", () => {
   beforeEach(() => {
-    vi.spyOn(tableApi, "fetchTables").mockResolvedValue(TABLES);
+    vi.spyOn(opsApi, "fetchFloor").mockResolvedValue(BOARD);
     vi.spyOn(menuApi, "fetchMenu").mockResolvedValue(MENU);
-    vi.spyOn(orderApi, "fetchOrdersByTable").mockResolvedValue([]);
-    vi.spyOn(orderApi, "createOrder").mockResolvedValue({ id: 78 });
-    vi.spyOn(orderApi, "deleteOrder").mockResolvedValue(null);
+    vi.spyOn(opsApi, "fetchSession").mockImplementation((id) =>
+      id === 2 ? Promise.resolve(SESSION) : Promise.reject(new Error("sin sesión"))
+    );
+    vi.spyOn(opsApi, "createTableOrder").mockResolvedValue({ id: 78 });
+    vi.spyOn(opsApi, "deliverOrder").mockResolvedValue({ id: 77, status: "DELIVERED" });
+    vi.spyOn(opsApi, "openTable").mockResolvedValue({ id: 51 });
   });
 
-  it("agrupa las mesas por zona y pide seleccionar una", async () => {
+  it("muestra el estado de cada mesa sin entrar en ella", async () => {
     renderFloor();
-
-    expect(await screen.findByRole("heading", { name: "Zona Central" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Barra" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Mesa 11/ })).toBeInTheDocument();
-    expect(screen.getByText("Selecciona una mesa para tomar o revisar un pedido.")).toBeInTheDocument();
+    const familiar = await screen.findByRole("button", { name: /Mesa Familiar/ });
+    expect(familiar).toHaveTextContent("Disponible");
+    const busy = screen.getByRole("button", { name: /Mesa 11/ });
+    expect(busy).toHaveTextContent("Pedido listo");
+    expect(busy).toHaveTextContent("Carlos");
+    expect(screen.getByText("Selecciona una mesa para atenderla.")).toBeInTheDocument();
   });
 
-  it("arma un pedido, calcula el total y lo envia con el formato que espera la API", async () => {
+  it("arma un pedido con modificaciones y lo envía con clave de idempotencia", async () => {
     const user = userEvent.setup();
     renderFloor();
-
     await user.click(await screen.findByRole("button", { name: /Mesa Familiar/ }));
-    expect(screen.getByRole("button", { name: /Mesa Familiar/ })).toHaveAttribute("aria-pressed", "true");
-    expect(orderApi.fetchOrdersByTable).toHaveBeenCalledWith(1);
 
-    const send = screen.getByRole("button", { name: /Enviar a cocina/ });
-    expect(send).toBeDisabled();
-
-    const risotto = within(dishRow("Risotto"));
-    await user.click(risotto.getByRole("button", { name: "Agregar uno" }));
-    await user.click(risotto.getByRole("button", { name: "Agregar uno" }));
-    await user.click(within(dishRow("Vino")).getByRole("button", { name: "Agregar uno" }));
+    await user.click(await screen.findByRole("button", { name: "Agregar Risotto" }));
+    await user.click(screen.getByRole("button", { name: "Agregar Risotto" }));
+    await user.click(screen.getByRole("button", { name: "Agregar Vino" }));
     expect(screen.getByText("$76.50")).toBeInTheDocument();
+    // Un producto agotado no se puede agregar.
+    expect(screen.getByRole("button", { name: "Agregar Flan" })).toBeDisabled();
 
-    // Quitar hasta cero elimina el plato del borrador.
-    await user.click(within(dishRow("Vino")).getByRole("button", { name: "Quitar uno" }));
-    await user.click(within(dishRow("Vino")).getByRole("button", { name: "Quitar uno" }));
-    expect(screen.getByText("$64.00")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Modificación para Risotto"), "Sin queso");
+    await user.click(screen.getByRole("button", { name: /Enviar a cocina/ }));
 
-    await user.click(send);
-
-    expect(orderApi.createOrder).toHaveBeenCalledWith({
+    await waitFor(() => expect(opsApi.createTableOrder).toHaveBeenCalledTimes(1));
+    const [payload, key] = opsApi.createTableOrder.mock.calls[0];
+    expect(payload).toEqual({
       tableId: 1,
-      items: [{ menuItemId: 100, quantity: 2 }]
+      items: [
+        { menuItemId: 100, quantity: 2, notes: "Sin queso" },
+        { menuItemId: 200, quantity: 1, notes: undefined }
+      ],
+      notes: undefined
     });
+    expect(typeof key).toBe("string");
     expect(await screen.findByText("Pedido enviado a cocina.")).toBeInTheDocument();
-    expect(screen.getByText("$0.00")).toBeInTheDocument();
-    expect(orderApi.fetchOrdersByTable).toHaveBeenCalledTimes(2);
   });
 
-  it("muestra los pedidos de la mesa y permite eliminarlos", async () => {
-    orderApi.fetchOrdersByTable.mockResolvedValueOnce([EXISTING_ORDER]).mockResolvedValueOnce([]);
+  it("muestra los pedidos de la atención y entrega uno listo", async () => {
     const user = userEvent.setup();
     renderFloor();
+    await user.click(await screen.findByRole("button", { name: /Mesa 11/ }));
 
+    expect(await screen.findByText("1× Risotto")).toBeInTheDocument();
+    expect(screen.getByText("Sin queso")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Entregar/ }));
+    await waitFor(() => expect(opsApi.deliverOrder).toHaveBeenCalledWith(77));
+  });
+
+  it("una mesa libre se puede ocupar indicando personas", async () => {
+    const user = userEvent.setup();
+    renderFloor();
     await user.click(await screen.findByRole("button", { name: /Mesa Familiar/ }));
-    expect(await screen.findByText("En preparación")).toBeInTheDocument();
-    expect(screen.getByText("1× Risotto")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Eliminar pedido" }));
-
-    expect(orderApi.deleteOrder).toHaveBeenCalledWith(77);
-    expect(await screen.findByText("Sin pedidos aún.")).toBeInTheDocument();
+    await user.type(await screen.findByLabelText("Personas"), "4");
+    await user.click(screen.getByRole("button", { name: /Ocupar mesa/ }));
+    await waitFor(() => expect(opsApi.openTable).toHaveBeenCalledWith(1, 4));
   });
 
   it("muestra el error de la API al enviar un pedido", async () => {
-    orderApi.createOrder.mockRejectedValue(new Error("Menu item not found"));
+    opsApi.createTableOrder.mockRejectedValue(new Error("Producto agotado: Risotto"));
     const user = userEvent.setup();
     renderFloor();
-
     await user.click(await screen.findByRole("button", { name: /Mesa Familiar/ }));
-    await user.click(within(dishRow("Risotto")).getByRole("button", { name: "Agregar uno" }));
+    await user.click(await screen.findByRole("button", { name: "Agregar Risotto" }));
     await user.click(screen.getByRole("button", { name: /Enviar a cocina/ }));
-
-    expect(await screen.findByText("Menu item not found")).toBeInTheDocument();
+    expect(await screen.findByText("Producto agotado: Risotto")).toBeInTheDocument();
   });
 
-  it("muestra la carga del menú en lugar de un menú vacío", async () => {
-    let resolveMenu;
-    menuApi.fetchMenu.mockReturnValue(new Promise((resolve) => (resolveMenu = resolve)));
+  it("si el tablero falla muestra el error y permite reintentar", async () => {
+    opsApi.fetchFloor.mockRejectedValueOnce(new Error("No se pudo conectar con el servidor."));
     const user = userEvent.setup();
     renderFloor();
-
-    await user.click(await screen.findByRole("button", { name: /Mesa Familiar/ }));
-    expect(screen.getByText("Cargando el menú...")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Agregar uno" })).not.toBeInTheDocument();
-
-    resolveMenu(MENU);
-    expect(await screen.findByText("Risotto")).toBeInTheDocument();
-    expect(screen.queryByText("Cargando el menú...")).not.toBeInTheDocument();
-  });
-
-  it("si el menú falla muestra el error y permite reintentar sin afectar al mapa", async () => {
-    menuApi.fetchMenu.mockRejectedValueOnce(new Error("El servidor tardó demasiado en responder."));
-    const user = userEvent.setup();
-    renderFloor();
-
-    await user.click(await screen.findByRole("button", { name: /Mesa Familiar/ }));
-    expect(await screen.findByText("El servidor tardó demasiado en responder.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Mesa 11/ })).toBeInTheDocument();
-
+    expect(await screen.findByText("No se pudo conectar con el servidor.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Reintentar/ }));
-    expect(await screen.findByText("Risotto")).toBeInTheDocument();
-    expect(menuApi.fetchMenu).toHaveBeenCalledTimes(2);
+    expect(await screen.findByRole("button", { name: /Mesa Familiar/ })).toBeInTheDocument();
   });
 });

@@ -1,6 +1,8 @@
 package com.restaurant.reservations.security;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -67,9 +69,12 @@ public class SecurityConfig {
                         + "script-src 'self'; "
                         // React/Tailwind inyectan estilos en linea en runtime.
                         + "style-src 'self' 'unsafe-inline'; "
-                        + "img-src 'self' data:; "
+                        // blob: para previsualizar imagenes antes de subirlas.
+                + "img-src 'self' data: blob:; "
                         + "font-src 'self' data:; "
                         + "connect-src 'self'; "
+                + "manifest-src 'self'; "
+                + "worker-src 'self'; "
                         + "object-src 'none'; "
                         + "base-uri 'self'; "
                         + "form-action 'self'; "
@@ -88,6 +93,11 @@ public class SecurityConfig {
             .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
+                // Despachos asincronos (SSE) y de error reutilizan la autorizacion ya
+                // concedida en la peticion original; sin esto el stream SSE se corta con 403.
+                .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
+                // Imagenes de menu/logo: un <img> no envia el token. Ids UUID aleatorios.
+                .requestMatchers(HttpMethod.GET, "/api/media/*").permitAll()
                 // /me valida el token guardado por el SPA; el resto de /api/auth es publico.
                 .requestMatchers("/api/auth/me").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()

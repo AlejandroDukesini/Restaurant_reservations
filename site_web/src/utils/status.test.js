@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CATEGORY_LABEL, ITEM_STATUS, ORDER_STATUS, money } from "./status";
+import { CATEGORY_LABEL, ITEM_STATUS, ORDER_STATUS, formatMinutes, minutesSince, money } from "./status";
 
 describe("money", () => {
   it("formatea con dos decimales", () => {
@@ -14,10 +14,25 @@ describe("money", () => {
 });
 
 describe("catalogos de estado", () => {
-  // Deben cubrir exactamente los enums del backend (OrderStatus, OrderItemStatus, MenuCategory).
+  // Deben cubrir los enums del backend (OrderStatus, OrderItemStatus) y los codigos antiguos.
   it("cubren todos los valores que devuelve la API", () => {
-    expect(Object.keys(ORDER_STATUS).sort()).toEqual(["CANCELLED", "COMPLETED", "IN_PROGRESS", "PENDING"]);
+    const backend = ["PENDING", "PREPARING", "READY", "PACKING", "PACKED", "ON_THE_WAY", "DELIVERED", "CANCELLED"];
+    for (const status of backend) expect(ORDER_STATUS[status]).toBeDefined();
+    // Valores del sistema anterior, para pedidos historicos.
+    expect(ORDER_STATUS.IN_PROGRESS).toBeDefined();
+    expect(ORDER_STATUS.COMPLETED).toBeDefined();
     expect(Object.keys(ITEM_STATUS).sort()).toEqual(["PENDING", "PREPARING", "READY"]);
     expect(Object.keys(CATEGORY_LABEL).sort()).toEqual(["DESSERT", "DRINK", "MAIN", "STARTER"]);
+  });
+});
+
+describe("tiempos", () => {
+  it("formatea minutos y calcula transcurrido", () => {
+    expect(formatMinutes(null)).toBe("—");
+    expect(formatMinutes(12.34)).toBe("12.3 min");
+    expect(formatMinutes(75)).toBe("1 h 15 min");
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60000).toISOString();
+    expect(minutesSince(tenMinutesAgo)).toBe(10);
+    expect(minutesSince(null)).toBeNull();
   });
 });

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.ActiveProfiles;
@@ -58,16 +59,30 @@ public abstract class IntegrationTest {
     @Autowired private UserRepository userRepository;
     @Autowired private RestaurantRepository restaurantRepository;
 
+    @Autowired private JdbcTemplate jdbc;
+
     @AfterEach
     void cleanDatabase() {
-        // Orden inverso a las claves foraneas.
+        // Orden inverso a las claves foraneas. Las tablas de la plataforma operativa se
+        // vacian con SQL directo (incluye la tabla de union de miembros de grupo).
+        for (String table : new String[] {"notifications", "chat_reads", "chat_messages", "order_events",
+            "user_devices"}) {
+            jdbc.update("DELETE FROM " + table);
+        }
         orderItemRepository.deleteAllInBatch();
         orderRepository.deleteAllInBatch();
+        jdbc.update("DELETE FROM table_sessions");
+        jdbc.update("DELETE FROM delivery_drivers");
+        jdbc.update("DELETE FROM delivery_platforms");
         reservationRepository.deleteAllInBatch();
         menuItemRepository.deleteAllInBatch();
+        jdbc.update("DELETE FROM menu_categories");
         tableRepository.deleteAllInBatch();
+        jdbc.update("DELETE FROM staff_group_members");
+        jdbc.update("DELETE FROM staff_groups");
         zoneRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
+        jdbc.update("DELETE FROM media_files");
         restaurantRepository.deleteAllInBatch();
     }
 

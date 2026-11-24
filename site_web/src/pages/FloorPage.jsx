@@ -1,44 +1,129 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Minus, Plus, Send, Trash2, Utensils } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useConfirm } from "../components/ConfirmDialog";
+import { useSearchParams } from "react-router-dom";
+import { BellRing, CheckCircle2, Clock, HandPlatter, Receipt, Send, Users, X, XCircle } from "lucide-react";
 import Layout from "../components/Layout";
-import FloorMap from "../components/FloorMap";
+import MenuPicker, { DraftSummary, draftToItems } from "../components/MenuPicker";
 import { ErrorState, Loader } from "../components/LoadState";
-import { fetchTables } from "../api/tableApi";
 import { fetchMenu } from "../api/menuApi";
-import { createOrder, deleteOrder, fetchOrdersByTable } from "../api/orderApi";
-import { CATEGORY_LABEL, ITEM_STATUS, ORDER_STATUS, money } from "../utils/status";
+import {
+  cancelOrder,
+  clearAttention,
+  closeTable,
+  createTableOrder,
+  deliverOrder,
+  fetchFloor,
+  fetchOrder,
+  fetchSession,
+  openTable,
+  requestAttention,
+  requestBill
+} from "../api/opsApi";
+import { useAuth } from "../auth/AuthContext";
+import { useRealtime } from "../realtime/RealtimeProvider";
+import { ITEM_STATUS, ORDER_STATUS, TABLE_STATE, minutesSince, money, newRequestKey, timeOf } from "../utils/status";
+
+const SUMMARY = [
+  ["AVAILABLE", "Disponibles"],
+  ["OCCUPIED", "Ocupadas"],
+  ["SENT", "En cocina"],
+  ["PREPARING", "Preparando"],
+  ["READY", "Listos"],
+  ["ATTENTION", "Atención"],
+  ["PAYMENT_PENDING", "Por cobrar"]
+];
+
+function useNow(intervalMs = 30000) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(t);
+  }, [intervalMs]);
+  return now;
+}
+
+function TableCard({ table, selected, onSelect, now }) {
+  const waiting = minutesSince(table.oldestActiveOrderAt, now);
+  const seated = minutesSince(table.openedAt, now);
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(table.id)}
+      aria-pressed={selected}
+      className={`live-card live-${table.liveState} card-lift flex min-h-28 flex-col justify-between p-3 pl-4 text-left ${selected ? "ring-2 ring-gold" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-champagne">{table.displayName}</p>
+          <p className="truncate text-xs text-zinc-500">
+            #{table.tableNumber} · {table.capacity} pers{table.zoneName ? ` · ${table.zoneName}` : ""}
+          </p>
+        </div>
+        {table.readyOrders > 0 && (
+          <span className="chip chip-ready" title="Pedidos listos para recoger">
+            {table.readyOrders} listo
+          </span>
+        )}
+      </div>
+      <div className="mt-2 flex items-center gap-2 text-xs text-zinc-300">
+        <span className="live-dot" aria-hidden="true" />
+        <span>{TABLE_STATE[table.liveState] || table.liveState}</span>
+      </div>
+      {table.sessionId && (
+        <div className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-zinc-500">
+          {table.waiterName && <span>{table.waiterName}</span>}
+          {seated !== null && <span>Mesa {seated} min</span>}
+          {waiting !== null && <span>Pedido {waiting} min</span>}
+          {table.sessionTotal > 0 && <span>{money(table.sessionTotal)}</span>}
+        </div>
+      )}
+    </button>
+  );
+}
 
 export default function FloorPage() {
-  const [tables, setTables] = useState(null); // null = aún sin primera carga
-  const [tablesError, setTablesError] = useState("");
-  const [menu, setMenu] = useState(null); // null = aún sin primera carga
-  const [menuError, setMenuError] = useState("");
-  const [selectedTableId, setSelectedTableId] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [draft, setDraft] = useState({}); // menuItemId -> quantity
-  const [status, setStatus] = useState("");
+  const { userId, role } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const [tables, setTables] = useState(null);
+  const [error, setError] = useState("");
+  const [menu, setMenu] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [session, setSession] = useState(null);
+  const [draft, setDraft] = useState({});
+  const [notes, setNotes] = useState("");
+  const [guests, setGuests] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [filter, setFilter] = useState(null);
+  const requestKey = useRef(newRequestKey());
+  const confirm = useConfirm();
+  const now = useNow();
 
-  const selectedTable = useMemo(
-    () => tables?.find((t) => t.id === selectedTableId) || null,
-    [tables, selectedTableId]
-  );
+  const selected = useMemo(() => tables?.find((t) => t.id === selectedId) || null, [tables, selectedId]);
 
   const loadTables = useCallback(async () => {
-    setTablesError("");
     try {
-      const data = await fetchTables();
-      setTables(data);
+      setTables(await fetchFloor());
+      setError("");
     } catch (err) {
-      setTablesError(err.message);
+      setError(err.message);
     }
   }, []);
 
   const loadMenu = useCallback(async () => {
-    setMenuError("");
     try {
       setMenu(await fetchMenu());
-    } catch (err) {
-      setMenuError(err.message);
+    } catch {
+      // El panel muestra el aviso al intentar pedir.
+    }
+  }, []);
+
+  const loadSession = useCallback(async (tableId) => {
+    if (!tableId) return setSession(null);
+    try {
+      setSession(await fetchSession(tableId));
+    } catch {
+      setSession(null); // Mesa libre (404): sin atención abierta.
     }
   }, []);
 
@@ -47,228 +132,294 @@ export default function FloorPage() {
     loadMenu();
   }, [loadTables, loadMenu]);
 
-  const loadOrders = useCallback(async (tableId) => {
-    if (!tableId) return;
-    try {
-      const data = await fetchOrdersByTable(tableId);
-      setOrders(data);
-    } catch (err) {
-      setStatus(err.message);
-    }
-  }, []);
-
   useEffect(() => {
     setDraft({});
-    if (selectedTableId) loadOrders(selectedTableId);
-    else setOrders([]);
-  }, [selectedTableId, loadOrders]);
+    setNotes("");
+    setMessage("");
+    requestKey.current = newRequestKey();
+    loadSession(selectedId);
+  }, [selectedId, loadSession]);
 
-  const changeQty = (menuItemId, delta) => {
-    setDraft((current) => {
-      const next = { ...current };
-      const value = (next[menuItemId] || 0) + delta;
-      if (value <= 0) delete next[menuItemId];
-      else next[menuItemId] = value;
-      return next;
-    });
+  // Enlaces desde notificaciones y mensajes: ?mesa=ID o ?pedido=ID.
+  useEffect(() => {
+    const mesa = params.get("mesa");
+    const pedido = params.get("pedido");
+    if (mesa) setSelectedId(Number(mesa));
+    else if (pedido) {
+      fetchOrder(pedido)
+        .then((order) => order.tableId && setSelectedId(order.tableId))
+        .catch(() => {});
+    }
+  }, [params]);
+
+  useRealtime(["tables", "orders"], () => {
+    loadTables();
+    if (selectedId) loadSession(selectedId);
+  });
+  useRealtime(["menu"], loadMenu);
+
+  const run = async (action, success) => {
+    setBusy(true);
+    setMessage("");
+    try {
+      await action();
+      if (success) setMessage(success);
+      await Promise.all([loadTables(), loadSession(selectedId)]);
+    } catch (err) {
+      setMessage(err.message);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const draftItems = Object.entries(draft);
-  const draftTotal = draftItems.reduce((sum, [id, qty]) => {
-    const item = menu?.find((m) => String(m.id) === String(id));
-    return sum + (item ? item.price * qty : 0);
-  }, 0);
-
-  const submitOrder = async () => {
-    if (!selectedTableId || draftItems.length === 0) return;
-    setStatus("Enviando pedido a cocina...");
-    try {
-      await createOrder({
-        tableId: selectedTableId,
-        items: draftItems.map(([menuItemId, quantity]) => ({
-          menuItemId: Number(menuItemId),
-          quantity
-        }))
-      });
+  const submitOrder = () =>
+    run(async () => {
+      await createTableOrder(
+        { tableId: selectedId, items: draftToItems(draft), notes: notes.trim() || undefined },
+        requestKey.current
+      );
       setDraft({});
-      setStatus("Pedido enviado a cocina.");
-      await loadOrders(selectedTableId);
-    } catch (err) {
-      setStatus(err.message);
-    }
+      setNotes("");
+      requestKey.current = newRequestKey();
+    }, "Pedido enviado a cocina.");
+
+  const closeSelection = () => {
+    setSelectedId(null);
+    if (params.get("mesa") || params.get("pedido")) setParams({}, { replace: true });
   };
 
-  const removeOrder = async (id) => {
-    try {
-      await deleteOrder(id);
-      await loadOrders(selectedTableId);
-    } catch (err) {
-      setStatus(err.message);
-    }
-  };
+  const counts = useMemo(() => {
+    const c = {};
+    for (const t of tables || []) c[t.liveState] = (c[t.liveState] || 0) + 1;
+    return c;
+  }, [tables]);
+
+  const visibleTables = (tables || []).filter((t) => !filter || t.liveState === filter);
+  const hasDraft = Object.keys(draft).length > 0;
+  const orders = session?.orders || [];
 
   return (
-    <Layout subtitle="Mapa interactivo" title="Piso · Reportar pedidos">
-      {status && (
-        <p key={status} className="motion-fade mb-4 text-sm text-zinc-400">
-          {status}
-        </p>
+    <Layout subtitle="Operación de sala" title="Mesas">
+      {tables && (
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1" aria-label="Resumen de mesas">
+          <button type="button" onClick={() => setFilter(null)} className={`chip shrink-0 ${!filter ? "chip-pending" : "chip-muted"}`}>
+            Todas · {tables.length}
+          </button>
+          {SUMMARY.map(([state, label]) => (
+            <button
+              key={state}
+              type="button"
+              onClick={() => setFilter(filter === state ? null : state)}
+              className={`chip shrink-0 live-${state} ${filter === state ? "chip-pending" : "chip-muted"}`}
+            >
+              <span className="live-dot" aria-hidden="true" /> {label} · {counts[state] || 0}
+            </button>
+          ))}
+        </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         {tables ? (
-          <FloorMap
-            tables={tables}
-            selectedTableId={selectedTableId}
-            onSelect={setSelectedTableId}
-          />
-        ) : tablesError ? (
-          <ErrorState message={tablesError} onRetry={loadTables} />
+          visibleTables.length === 0 ? (
+            <div className="zone-band py-12 text-center text-sm text-zinc-400">No hay mesas en esta vista.</div>
+          ) : (
+            <div className="grid content-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleTables.map((table) => (
+                <TableCard key={table.id} table={table} selected={table.id === selectedId} onSelect={setSelectedId} now={now} />
+              ))}
+            </div>
+          )
+        ) : error ? (
+          <ErrorState message={error} onRetry={loadTables} />
         ) : (
-          <Loader label="Cargando el mapa de mesas..." />
+          <Loader label="Cargando mesas..." />
         )}
 
-        <aside className="motion-enter zone-band h-fit" style={{ "--i": 2 }}>
-          {!selectedTable ? (
-            <p className="motion-fade text-sm text-zinc-400">
-              Selecciona una mesa para tomar o revisar un pedido.
-            </p>
-          ) : (
-            // La clave reinicia la entrada al cambiar de mesa.
-            <div key={selectedTable.id} className="motion-fade space-y-5">
-              <div className="border-b border-white/10 pb-4">
-                <p className="text-xs uppercase tracking-[.2em] text-gold">Mesa seleccionada</p>
-                <h3 className="mt-1 text-2xl font-semibold text-champagne">
-                  {selectedTable.name || `Mesa ${selectedTable.tableNumber}`}
-                </h3>
-                <p className="text-sm text-zinc-400">
-                  #{selectedTable.tableNumber} · {selectedTable.capacity} personas ·{" "}
-                  {selectedTable.zoneName}
-                </p>
-              </div>
+        {/* Panel de la mesa: lateral en escritorio, pantalla completa en móvil. */}
+        <aside
+          className={`${selected ? "fixed inset-0 z-40 overflow-y-auto bg-carbon p-4 pb-24 lg:static lg:z-auto lg:bg-transparent lg:p-0 lg:pb-0" : "hidden lg:block"}`}
+        >
+          <div className="zone-band lg:sticky lg:top-24">
+            {!selected ? (
+              <p className="text-sm text-zinc-400">Selecciona una mesa para atenderla.</p>
+            ) : (
+              <div key={selected.id} className="motion-fade space-y-4">
+                <div className="flex items-start justify-between gap-2 border-b border-white/10 pb-3">
+                  <div>
+                    <p className={`flex items-center gap-2 text-xs uppercase tracking-[.18em] text-gold live-${selected.liveState}`}>
+                      <span className="live-dot" /> {TABLE_STATE[selected.liveState]}
+                    </p>
+                    <h3 className="mt-1 text-2xl font-semibold text-champagne">{selected.displayName}</h3>
+                    <p className="text-sm text-zinc-400">
+                      #{selected.tableNumber} · {selected.capacity} personas
+                      {selected.groupName ? ` · ${selected.groupName}` : ""}
+                    </p>
+                  </div>
+                  <button type="button" onClick={closeSelection} className="grid h-10 w-10 place-items-center text-zinc-400 hover:text-champagne" aria-label="Cerrar panel">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
 
-              <div>
-                <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-champagne">
-                  <Utensils className="h-4 w-4 text-gold" /> Nuevo pedido
-                </p>
-                {/* El menú tiene su propia carga: no se muestra vacío mientras llega. */}
-                {!menu ? (
-                  menuError ? (
-                    <ErrorState message={menuError} onRetry={loadMenu} />
-                  ) : (
-                    <Loader label="Cargando el menú..." className="py-8" />
-                  )
-                ) : menu.length === 0 ? (
-                  <p className="motion-fade text-xs text-zinc-500">No hay platos activos en el menú.</p>
+                {message && <p className="text-sm text-zinc-300" role="status">{message}</p>}
+
+                {selected.liveState === "MAINTENANCE" ? (
+                  <p className="text-sm text-zinc-400">Mesa fuera de servicio.</p>
+                ) : !session ? (
+                  <div className="flex flex-wrap items-end gap-2">
+                    <label className="field-label w-28">
+                      Personas
+                      <input type="number" min="1" max="100" value={guests} onChange={(e) => setGuests(e.target.value)} className="field" />
+                    </label>
+                    <button type="button" disabled={busy} onClick={() => run(() => openTable(selected.id, Number(guests) || undefined), "Mesa ocupada.")} className="btn btn-primary bg-metal">
+                      <Users className="h-4 w-4" /> Ocupar mesa
+                    </button>
+                  </div>
                 ) : (
-                  <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                    {menu.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between gap-2 border border-white/10 bg-white/[.03] px-3 py-2"
+                  <div className="space-y-2 text-sm">
+                    <p className="flex flex-wrap gap-x-3 text-zinc-400">
+                      <span><Clock className="mr-1 inline h-4 w-4" />Desde {timeOf(session.openedAt)}</span>
+                      {session.waiterName && <span>Atiende: {session.waiterName}</span>}
+                      {session.guests && <span>{session.guests} personas</span>}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {session.attentionRequestedAt ? (
+                        <button type="button" disabled={busy} onClick={() => run(() => clearAttention(selected.id), "Atención resuelta.")} className="btn btn-sm btn-danger">
+                          <CheckCircle2 className="h-4 w-4" /> Atención resuelta
+                        </button>
+                      ) : (
+                        <button type="button" disabled={busy} onClick={() => run(() => requestAttention(selected.id), "Mesa marcada: requiere atención.")} className="btn btn-sm">
+                          <BellRing className="h-4 w-4" /> Requiere atención
+                        </button>
+                      )}
+                      {session.status === "OPEN" && (
+                        <button type="button" disabled={busy} onClick={() => run(() => requestBill(selected.id), "Cuenta solicitada.")} className="btn btn-sm">
+                          <Receipt className="h-4 w-4" /> Pedir cuenta
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        disabled={busy || orders.some((o) => !["DELIVERED", "CANCELLED"].includes(o.status))}
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: `Cerrar ${selected.displayName}`,
+                            message: `${orders.filter((o) => o.status === "DELIVERED").length} pedidos entregados. Se registrará el cobro y la mesa quedará disponible.`,
+                            highlight: money(session.total),
+                            confirmLabel: "Confirmar cobro",
+                            cancelLabel: "Cancelar"
+                          });
+                          if (ok) run(() => closeTable(selected.id), "Mesa cerrada y cobrada.");
+                        }}
+                        className="btn btn-sm btn-primary"
+                        title="Disponible cuando todo está entregado o cancelado"
                       >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm text-champagne">{item.name}</p>
-                          <p className="text-xs text-zinc-500">
-                            {CATEGORY_LABEL[item.category] || item.category} · {money(item.price)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className="grid h-7 w-7 place-items-center rounded-full border border-white/15 text-zinc-300 hover:border-gold/50"
-                            onClick={() => changeQty(item.id, -1)}
-                            aria-label="Quitar uno"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <span
-                            key={draft[item.id] || 0}
-                            className="motion-pop w-5 text-center text-sm text-champagne"
-                          >
-                            {draft[item.id] || 0}
-                          </span>
-                          <button
-                            type="button"
-                            className="grid h-7 w-7 place-items-center rounded-full border border-white/15 text-zinc-300 hover:border-gold/50"
-                            onClick={() => changeQty(item.id, 1)}
-                            aria-label="Agregar uno"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                        <CheckCircle2 className="h-4 w-4" /> Cerrar · {money(session.total)}
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">Total</span>
-                  <span key={draftTotal} className="motion-pop text-lg font-semibold text-champagne">
-                    {money(draftTotal)}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  disabled={draftItems.length === 0}
-                  onClick={submitOrder}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-gold/60 bg-metal px-4 py-2.5 font-semibold text-carbon shadow-gold transition hover:brightness-110 disabled:opacity-50"
-                >
-                  <Send className="h-4 w-4" /> Enviar a cocina
-                </button>
-              </div>
-
-              <div className="border-t border-white/10 pt-4">
-                <p className="mb-2 text-sm font-semibold text-champagne">Pedidos de la mesa</p>
-                {orders.length === 0 ? (
-                  <p className="motion-fade text-xs text-zinc-500">Sin pedidos aún.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {orders.map((order, index) => {
-                      const s = ORDER_STATUS[order.status] || ORDER_STATUS.PENDING;
-                      return (
-                        <div
-                          key={order.id}
-                          className="motion-enter border border-white/10 bg-white/[.03] p-3"
-                          style={{ "--i": index }}
-                        >
-                          <div className="mb-2 flex items-center justify-between">
-                            <span className={`chip ${s.chip}`}>{s.label}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-champagne">
-                                {money(order.totalAmount)}
+                {session && orders.length > 0 && (
+                  <div className="border-t border-white/10 pt-3">
+                    <p className="mb-2 text-sm font-semibold text-champagne">Pedidos de esta atención</p>
+                    <div className="space-y-3">
+                      {orders.map((order) => {
+                        const s = ORDER_STATUS[order.status] || ORDER_STATUS.PENDING;
+                        const mine = order.employeeId === userId || role === "ADMIN";
+                        const elapsed = minutesSince(order.orderDate, now);
+                        const late = order.estimatedMinutes && !order.readyAt && ["PENDING", "PREPARING"].includes(order.status) && elapsed > order.estimatedMinutes;
+                        return (
+                          <div key={order.id} className="border border-white/10 bg-white/[.03] p-3">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <span className={`chip ${s.chip}`}>{s.label}</span>
+                              <span className={`text-xs ${late ? "is-late" : "text-zinc-500"}`}>
+                                #{order.id} · {timeOf(order.orderDate)}
+                                {["PENDING", "PREPARING"].includes(order.status) && ` · ${elapsed} min`}
+                                {order.estimatedMinutes ? ` / ~${order.estimatedMinutes}` : ""}
                               </span>
-                              <button
-                                type="button"
-                                onClick={() => removeOrder(order.id)}
-                                className="text-zinc-500 hover:text-red-400"
-                                aria-label="Eliminar pedido"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                            </div>
+                            <ul className="space-y-1 text-sm text-zinc-300">
+                              {order.items.map((item) => {
+                                const is = ITEM_STATUS[item.status] || ITEM_STATUS.PENDING;
+                                return (
+                                  <li key={item.id} className="flex items-start justify-between gap-2">
+                                    <span className="min-w-0">
+                                      {item.quantity}× {item.itemName}
+                                      {item.notes && <span className="block text-xs text-zinc-500">{item.notes}</span>}
+                                    </span>
+                                    <span className={`chip ${is.chip}`}>{is.label}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-sm text-champagne">{money(order.totalAmount)}</span>
+                              <div className="flex gap-2">
+                                {order.status === "READY" && (
+                                  <button type="button" disabled={busy} onClick={() => run(() => deliverOrder(order.id), "Pedido entregado en la mesa.")} className="btn btn-sm btn-primary bg-metal">
+                                    <HandPlatter className="h-4 w-4" /> Entregar
+                                  </button>
+                                )}
+                                {mine && (order.status === "PENDING" || (role === "ADMIN" && !["DELIVERED", "CANCELLED"].includes(order.status))) && (
+                                  <button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={async () => {
+                                      const result = await confirm({
+                                        title: `¿Cancelar el pedido #${order.id}?`,
+                                        message: `${order.items.map((i) => `${i.quantity}× ${i.itemName}`).join(", ")} · ${money(order.totalAmount)}`,
+                                        confirmLabel: "Cancelar pedido",
+                                        cancelLabel: "Volver",
+                                        tone: "danger",
+                                        input: { label: "Motivo (opcional)", placeholder: "El cliente cambió de opinión..." }
+                                      });
+                                      if (result) run(() => cancelOrder(order.id, result.value), "Pedido cancelado.");
+                                    }}
+                                    className="btn btn-sm btn-danger"
+                                  >
+                                    <XCircle className="h-4 w-4" /> Cancelar
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
-                          <ul className="space-y-1 text-sm text-zinc-300">
-                            {order.items.map((item) => {
-                              const is = ITEM_STATUS[item.status] || ITEM_STATUS.PENDING;
-                              return (
-                                <li key={item.id} className="flex items-center justify-between gap-2">
-                                  <span className="truncate">
-                                    {item.quantity}× {item.itemName}
-                                  </span>
-                                  <span className={`chip ${is.chip}`}>{is.label}</span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {selected.liveState !== "MAINTENANCE" && (
+                  <div className="border-t border-white/10 pt-3">
+                    <p className="mb-2 text-sm font-semibold text-champagne">Nuevo pedido</p>
+                    {!menu ? (
+                      <Loader label="Cargando el menú..." className="py-6" />
+                    ) : menu.length === 0 ? (
+                      <p className="text-xs text-zinc-500">No hay productos activos en el menú.</p>
+                    ) : (
+                      <>
+                        <MenuPicker menu={menu} draft={draft} onChange={setDraft} />
+                        <DraftSummary menu={menu} draft={draft} onChange={setDraft} />
+                        {hasDraft && (
+                          <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            maxLength={1000}
+                            rows={2}
+                            placeholder="Observaciones del pedido"
+                            className="field mt-2"
+                            aria-label="Observaciones del pedido"
+                          />
+                        )}
+                        <button type="button" disabled={!hasDraft || busy} onClick={submitOrder} className="btn btn-primary bg-metal mt-3 w-full">
+                          <Send className="h-4 w-4" /> {busy ? "Enviando..." : "Enviar a cocina"}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </aside>
       </div>
     </Layout>

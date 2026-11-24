@@ -2,8 +2,6 @@ package com.restaurant.reservations.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,6 +9,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Plato o bebida del menu.
+ *
+ * active = false: archivado (fuera del menu, conserva historico).
+ * available = false: agotado temporalmente (sigue en el menu, no se puede pedir).
+ */
 @Entity
 @Table(name = "menu_items")
 public class MenuItem {
@@ -22,17 +26,17 @@ public class MenuItem {
     @Column(nullable = false)
     private String name;
 
-    @Column
+    @Column(length = 500)
     private String description;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private MenuCategory category = MenuCategory.MAIN;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private MenuCategory category;
 
     @Column(nullable = false)
     private double price;
 
-    // Especificaciones de receta (fija, no personalizable) que consulta el cocinero
+    // Especificaciones de receta que consulta la cocina
     @Column
     private String protein;
 
@@ -44,6 +48,15 @@ public class MenuItem {
 
     @Column(length = 1000)
     private String preparationNotes;
+
+    @Column(name = "image_media_id", length = 36)
+    private String imageMediaId;
+
+    /** Tiempo estimado de preparacion en minutos (referencia; el tiempo real se mide). */
+    private Integer prepMinutes;
+
+    @Column(nullable = false)
+    private boolean available = true;
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id", nullable = false)
@@ -88,6 +101,15 @@ public class MenuItem {
 
     public String getPreparationNotes() { return preparationNotes; }
     public void setPreparationNotes(String preparationNotes) { this.preparationNotes = preparationNotes; }
+
+    public String getImageMediaId() { return imageMediaId; }
+    public void setImageMediaId(String imageMediaId) { this.imageMediaId = imageMediaId; }
+
+    public Integer getPrepMinutes() { return prepMinutes; }
+    public void setPrepMinutes(Integer prepMinutes) { this.prepMinutes = prepMinutes; }
+
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
 
     public Restaurant getRestaurant() { return restaurant; }
     public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }

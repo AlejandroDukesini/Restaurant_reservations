@@ -1,6 +1,15 @@
 package com.restaurant.reservations.config;
 
+import com.restaurant.reservations.model.DeliveryDriver;
+import com.restaurant.reservations.model.DeliveryPlatform;
 import com.restaurant.reservations.model.MenuCategory;
+import com.restaurant.reservations.model.StaffGroup;
+import com.restaurant.reservations.repository.DeliveryDriverRepository;
+import com.restaurant.reservations.repository.DeliveryPlatformRepository;
+import com.restaurant.reservations.repository.MenuCategoryRepository;
+import com.restaurant.reservations.repository.StaffGroupRepository;
+import java.util.HashMap;
+import java.util.Map;
 import com.restaurant.reservations.model.MenuItem;
 import com.restaurant.reservations.model.Restaurant;
 import com.restaurant.reservations.model.RestaurantTable;
@@ -34,6 +43,10 @@ public class DataSeeder implements ApplicationRunner {
     private final TableRepository tableRepository;
     private final UserRepository userRepository;
     private final MenuItemRepository menuItemRepository;
+    private final MenuCategoryRepository categoryRepository;
+    private final StaffGroupRepository groupRepository;
+    private final DeliveryPlatformRepository platformRepository;
+    private final DeliveryDriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
     private final boolean seedEnabled;
     private final String seedPassword;
@@ -44,6 +57,10 @@ public class DataSeeder implements ApplicationRunner {
         TableRepository tableRepository,
         UserRepository userRepository,
         MenuItemRepository menuItemRepository,
+        MenuCategoryRepository categoryRepository,
+        StaffGroupRepository groupRepository,
+        DeliveryPlatformRepository platformRepository,
+        DeliveryDriverRepository driverRepository,
         PasswordEncoder passwordEncoder,
         // La siembra de demostracion crea cuentas con una contrasena conocida y
         // publicada en la pantalla de login. Se puede desactivar (SEED_ENABLED=false)
@@ -56,6 +73,10 @@ public class DataSeeder implements ApplicationRunner {
         this.tableRepository = tableRepository;
         this.userRepository = userRepository;
         this.menuItemRepository = menuItemRepository;
+        this.categoryRepository = categoryRepository;
+        this.groupRepository = groupRepository;
+        this.platformRepository = platformRepository;
+        this.driverRepository = driverRepository;
         this.passwordEncoder = passwordEncoder;
         this.seedEnabled = seedEnabled;
         this.seedPassword = seedPassword;
@@ -156,91 +177,140 @@ public class DataSeeder implements ApplicationRunner {
             new UserSeed("mesero1@maisonnoir.com", "Carlos Mesero", Role.EMPLOYEE),
             new UserSeed("mesero2@maisonnoir.com", "Lucía Mesera", Role.EMPLOYEE),
             new UserSeed("cocina1@maisonnoir.com", "Chef Alejo", Role.COOK),
-            new UserSeed("cocina2@maisonnoir.com", "Chef Marta", Role.COOK)
+            new UserSeed("cocina2@maisonnoir.com", "Chef Marta", Role.COOK),
+            new UserSeed("domicilios1@maisonnoir.com", "Andrés Domiciliario", Role.DELIVERY)
         );
+        List<User> saved = new ArrayList<>();
         for (UserSeed seed : users) {
             // Contraseña de demo para todos (configurable con SEED_PASSWORD).
-            userRepository.save(
+            saved.add(userRepository.save(
                 new User(seed.email(), passwordEncoder.encode(seedPassword), seed.name(), seed.role(), restaurant)
-            );
+            ));
+        }
+        seedOperations(restaurant, saved);
+    }
+
+    /** Grupos de trabajo, plataformas de domicilio y ficha del domiciliario de demostracion. */
+    private void seedOperations(Restaurant restaurant, List<User> users) {
+        Long restaurantId = restaurant.getId();
+        StaffGroup floor = new StaffGroup(restaurantId, "Salón");
+        floor.setDescription("Meseros y gerencia");
+        StaffGroup kitchen = new StaffGroup(restaurantId, "Cocina");
+        kitchen.setDescription("Equipo de cocina");
+        StaffGroup delivery = new StaffGroup(restaurantId, "Domicilios");
+        delivery.setDescription("Despacho y reparto");
+        for (User user : users) {
+            switch (user.getRole()) {
+                case ADMIN -> {
+                    floor.getMembers().add(user);
+                    kitchen.getMembers().add(user);
+                    delivery.getMembers().add(user);
+                }
+                case EMPLOYEE -> floor.getMembers().add(user);
+                case COOK -> {
+                    kitchen.getMembers().add(user);
+                    delivery.getMembers().add(user);
+                }
+                case DELIVERY -> {
+                    delivery.getMembers().add(user);
+                    DeliveryDriver driver = new DeliveryDriver(restaurantId, user.getName());
+                    driver.setUser(user);
+                    driverRepository.save(driver);
+                }
+                default -> {
+                }
+            }
+        }
+        groupRepository.saveAll(List.of(floor, kitchen, delivery));
+        for (String name : List.of("Domicilio propio", "Rappi", "DiDi Food")) {
+            platformRepository.save(new DeliveryPlatform(restaurantId, name));
         }
     }
 
     private void seedMenu(Restaurant restaurant) {
         List<MenuSeed> items = List.of(
             new MenuSeed(
-                "Bruschetta Trufada", MenuCategory.STARTER, 18.0,
+                "Bruschetta Trufada", "STARTER", 18.0,
                 "Ninguna",
                 "Aceite de oliva, sal Maldon, pimienta",
                 "Pan de masa madre, tomate cherry, aceite de trufa, albahaca",
                 "Tostar el pan, montar en frío, servir de inmediato"
             ),
             new MenuSeed(
-                "Carpaccio de Res", MenuCategory.STARTER, 24.0,
+                "Carpaccio de Res", "STARTER", 24.0,
                 "Res (lomo fino)",
                 "Limón, alcaparras, parmesano, aceite de oliva",
                 "Lomo de res laminado, rúcula, láminas de parmesano",
                 "Laminar en frío, aliñar al momento"
             ),
             new MenuSeed(
-                "Risotto de Hongos", MenuCategory.MAIN, 32.0,
+                "Risotto de Hongos", "MAIN", 32.0,
                 "Ninguna",
                 "Mantequilla, parmesano, tomillo, sal, pimienta",
                 "Arroz arborio, hongos portobello, caldo de verduras, vino blanco",
                 "Cocción lenta 18 min removiendo, mantecar al final"
             ),
             new MenuSeed(
-                "Salmón a la Parrilla", MenuCategory.MAIN, 38.0,
+                "Salmón a la Parrilla", "MAIN", 38.0,
                 "Salmón",
                 "Eneldo, limón, sal, pimienta, mantequilla",
                 "Filete de salmón, espárragos, puré de papa",
                 "Parrilla 4 min por lado, piel crujiente"
             ),
             new MenuSeed(
-                "Filete Mignon", MenuCategory.MAIN, 46.0,
+                "Filete Mignon", "MAIN", 46.0,
                 "Res (filete mignon)",
                 "Sal, pimienta, romero, mantequilla, salsa de vino tinto",
                 "Medallón de res, papas confitadas, reducción de vino",
                 "Sellar y terminar al horno; preguntar término de cocción"
             ),
             new MenuSeed(
-                "Pollo al Curry", MenuCategory.MAIN, 30.0,
+                "Pollo al Curry", "MAIN", 30.0,
                 "Pollo",
                 "Curry, comino, cúrcuma, jengibre, leche de coco",
                 "Pechuga de pollo, arroz basmati, cilantro",
                 "Guisar 20 min, servir con arroz aparte"
             ),
             new MenuSeed(
-                "Tiramisú", MenuCategory.DESSERT, 14.0,
+                "Tiramisú", "DESSERT", 14.0,
                 "Ninguna",
                 "Cacao, café espresso",
                 "Mascarpone, bizcochos savoiardi, café, huevo",
                 "Montar en capas, reposar en frío mínimo 4h"
             ),
             new MenuSeed(
-                "Coulant de Chocolate", MenuCategory.DESSERT, 16.0,
+                "Coulant de Chocolate", "DESSERT", 16.0,
                 "Ninguna",
                 "Azúcar glas",
                 "Chocolate 70%, mantequilla, huevo, harina, helado de vainilla",
                 "Horno 220°C por 9 min, centro líquido; servir caliente"
             ),
             new MenuSeed(
-                "Copa de Vino Tinto", MenuCategory.DRINK, 12.0,
+                "Copa de Vino Tinto", "DRINK", 12.0,
                 null,
                 null,
                 "Reserva Malbec",
                 "Servir a 16-18°C"
             ),
             new MenuSeed(
-                "Cóctel de la Casa", MenuCategory.DRINK, 15.0,
+                "Cóctel de la Casa", "DRINK", 15.0,
                 null,
                 "Angostura, twist de naranja",
                 "Gin premium, vermut, licor de naranja",
                 "Mezclar con hielo, colar, decorar con twist"
             )
         );
+        // Categorias libres (antes enum) y tiempo estimado de preparacion por categoria.
+        Map<String, MenuCategory> categories = new HashMap<>();
+        Map<String, Integer> prepMinutes = Map.of("STARTER", 10, "MAIN", 20, "DESSERT", 8, "DRINK", 4);
+        String[][] names = {{"STARTER", "Entradas"}, {"MAIN", "Platos fuertes"}, {"DESSERT", "Postres"},
+            {"DRINK", "Bebidas"}};
+        for (int i = 0; i < names.length; i++) {
+            categories.put(names[i][0], categoryRepository.save(new MenuCategory(restaurant.getId(), names[i][1], i + 1)));
+        }
         for (MenuSeed seed : items) {
-            MenuItem item = new MenuItem(seed.name(), seed.category(), seed.price(), restaurant);
+            MenuItem item = new MenuItem(seed.name(), categories.get(seed.category()), seed.price(), restaurant);
+            item.setPrepMinutes(prepMinutes.get(seed.category()));
             item.setProtein(seed.protein());
             item.setCondiments(seed.condiments());
             item.setIngredients(seed.ingredients());
@@ -260,7 +330,7 @@ public class DataSeeder implements ApplicationRunner {
 
     private record MenuSeed(
         String name,
-        MenuCategory category,
+        String category,
         double price,
         String protein,
         String condiments,

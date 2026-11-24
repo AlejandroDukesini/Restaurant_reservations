@@ -121,13 +121,13 @@ class RequestValidationTest {
     @Test
     @DisplayName("personal sin contrasena es valido (actualizacion sin cambio de clave)")
     void personalSinContrasenaEsValido() {
-        assertEquals(Set.of(), invalidFields(new StaffRequest("Ana", "ana@example.test", null, "COOK", null)));
+        assertEquals(Set.of(), invalidFields(new StaffRequest("Ana", "ana@example.test", null, "COOK", null, null, null)));
     }
 
     @Test
     @DisplayName("personal con contrasena corta es invalido")
     void personalConContrasenaCortaEsInvalido() {
-        assertEquals(Set.of("password"), invalidFields(new StaffRequest("Ana", "ana@example.test", "corta", "COOK", null)));
+        assertEquals(Set.of("password"), invalidFields(new StaffRequest("Ana", "ana@example.test", "corta", "COOK", null, null, null)));
     }
 
     @Test
@@ -144,7 +144,7 @@ class RequestValidationTest {
     @Test
     @DisplayName("mesa exige capacidad y coordenadas positivas")
     void mesaExigeCapacidadYCoordenadasPositivas() {
-        TableRequest request = new TableRequest(0, null, 1, 0, -1.0, null, 0, null);
+        TableRequest request = new TableRequest(0, null, 1, 0, -1.0, null, 0, null, null, null, null);
         assertTrue(invalidFields(request).containsAll(Set.of("tableNumber", "capacity", "price", "gridX")));
     }
 }

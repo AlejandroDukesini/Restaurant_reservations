@@ -1,20 +1,59 @@
 @import "tailwindcss";
 
-/* Paleta y sombras de marca (Tailwind v4: theme definido en CSS). */
+/*
+ * Paleta personalizable. Los nombres historicos de Tailwind (carbon, gold, champagne, zinc...)
+ * apuntan a variables --t-* que fija ThemeProvider con la identidad del restaurante o del
+ * grupo. Asi la personalizacion llega a toda la interfaz sin reescribir cada componente.
+ * Los valores por defecto (:root) reproducen el tema negro y dorado original.
+ */
 @theme {
-  --color-carbon: #050505;
-  --color-graphite: #121212;
-  --color-obsidian: #0a0a0b;
-  --color-champagne: #f8e7b0;
-  --color-gold: #d8a943;
-  --color-antique: #8e6a2a;
+  --color-carbon: var(--t-bg);
+  --color-graphite: var(--t-surface);
+  --color-obsidian: var(--t-card);
+  --color-champagne: var(--t-heading);
+  --color-gold: var(--t-primary);
+  --color-antique: var(--t-secondary);
+  --color-white: var(--t-ink);
+  --color-zinc-100: var(--t-text);
+  --color-zinc-200: var(--t-text);
+  --color-zinc-300: var(--t-text);
+  --color-zinc-400: var(--t-muted);
+  --color-zinc-500: var(--t-muted);
+  --color-zinc-600: var(--t-muted);
+  --color-red-300: var(--t-danger);
+  --color-red-400: var(--t-danger);
+  --color-red-500: var(--t-danger);
+  --color-emerald-300: var(--t-success);
+  --color-amber-300: var(--t-warning);
+  --color-sky-300: var(--t-info);
 
-  --shadow-gold: 0 0 28px rgba(216, 169, 67, 0.42), inset 0 0 18px rgba(248, 231, 176, 0.12);
-  --shadow-neon: 0 0 22px rgba(248, 231, 176, 0.24);
+  --shadow-gold: 0 0 28px color-mix(in oklab, var(--t-primary) 42%, transparent), inset 0 0 18px color-mix(in oklab, var(--t-accent) 12%, transparent);
+  --shadow-neon: 0 0 22px color-mix(in oklab, var(--t-accent) 24%, transparent);
 
   /* Las utilidades `transition` de Tailwind heredan la curva y duración del sistema de movimiento. */
   --default-transition-duration: 180ms;
   --default-transition-timing-function: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* Tema por defecto (antes de cargar la identidad del restaurante). */
+:root {
+  --t-bg: #050505;
+  --t-surface: #121212;
+  --t-card: #0a0a0b;
+  --t-heading: #f8e7b0;
+  --t-primary: #d8a943;
+  --t-secondary: #8e6a2a;
+  --t-accent: #f8e7b0;
+  --t-text: #f4f4f5;
+  --t-muted: #a1a1aa;
+  --t-border: #3f3f46;
+  --t-ink: #ffffff;
+  --t-success: #86efac;
+  --t-warning: #fbbf24;
+  --t-danger: #f87171;
+  --t-info: #8ec5ff;
+  --t-nav: #050505;
+  --t-button-text: #050505;
 }
 
 /* ---------- Sistema de movimiento ---------- */
@@ -45,7 +84,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid rgba(216, 169, 67, .85);
+    outline: 2px solid color-mix(in oklab, var(--t-primary) 85%, transparent);
     outline-offset: 2px;
   }
 }
@@ -111,8 +150,8 @@
 .loader-ring {
   width: 1.75rem;
   height: 1.75rem;
-  border: 2px solid rgba(216, 169, 67, .22);
-  border-top-color: #d8a943;
+  border: 2px solid color-mix(in oklab, var(--t-primary) 22%, transparent);
+  border-top-color: var(--t-primary);
   border-radius: 999px;
   animation: motion-spin .8s linear infinite;
 }
@@ -127,51 +166,62 @@
 .motion-backdrop.is-closing { animation: motion-fade-out var(--motion-fast) var(--motion-ease-in) forwards; }
 .motion-dialog.is-closing { animation: motion-dialog-out var(--motion-fast) var(--motion-ease-in) forwards; }
 
-/* Degradado metálico dorado (no cabe en un token de color de Tailwind). */
+/*
+ * Boton principal: degradado del color primario. Es CSS sin capa, asi que su color de texto
+ * (validado contra el primario) prevalece sobre utilidades como text-carbon.
+ */
 .bg-metal {
+  color: var(--t-button-text);
   background-image: linear-gradient(
     135deg,
-    #76551c 0%,
-    #f8e7b0 22%,
-    #b8862f 42%,
-    #fff1bc 54%,
-    #9f7428 75%,
-    #f3d17a 100%
+    color-mix(in oklab, var(--t-primary) 80%, #000) 0%,
+    color-mix(in oklab, var(--t-primary) 75%, #fff) 26%,
+    var(--t-primary) 50%,
+    color-mix(in oklab, var(--t-primary) 82%, #fff) 70%,
+    color-mix(in oklab, var(--t-primary) 85%, #000) 100%
   );
 }
 
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #050505;
+  background: var(--t-bg);
+}
+
+:root[data-mode="light"] {
+  color-scheme: light;
 }
 
 body {
   margin: 0;
+  color: var(--t-text);
   background:
-    radial-gradient(circle at 24% 8%, rgba(216, 169, 67, .12), transparent 28rem),
-    radial-gradient(circle at 82% 38%, rgba(248, 231, 176, .08), transparent 22rem),
-    #050505;
+    radial-gradient(circle at 24% 8%, color-mix(in oklab, var(--t-primary) 12%, transparent), transparent 28rem),
+    radial-gradient(circle at 82% 38%, color-mix(in oklab, var(--t-accent) 8%, transparent), transparent 22rem),
+    var(--t-bg);
+  -webkit-tap-highlight-color: transparent;
 }
 
-input {
+/* :where() deja la especificidad en 0,0,1: la clase .field puede sobrescribir estos valores. */
+input:where(:not([type="checkbox"]):not([type="radio"]):not([type="color"])) {
   width: 100%;
   min-width: 0;
   border: 0;
   background: transparent;
-  color: #f8e7b0;
+  color: var(--t-text);
   outline: 0;
 }
 
-input::placeholder {
-  color: rgba(212, 212, 216, .46);
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in oklab, var(--t-muted) 80%, transparent);
 }
 
 .zone-band {
-  border: 1px solid rgba(255, 255, 255, .1);
+  border: 1px solid color-mix(in oklab, var(--t-ink) 10%, transparent);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .015)),
-    repeating-linear-gradient(45deg, rgba(216, 169, 67, .035) 0 1px, transparent 1px 10px);
+    linear-gradient(135deg, color-mix(in oklab, var(--t-ink) 6%, transparent), color-mix(in oklab, var(--t-ink) 1.5%, transparent)),
+    repeating-linear-gradient(45deg, color-mix(in oklab, var(--t-primary) 3.5%, transparent) 0 1px, transparent 1px 10px);
   padding: 1rem;
 }
 
@@ -186,8 +236,8 @@ input::placeholder {
 @media (hover: hover) {
   .card-lift:hover {
     transform: translateY(-2px);
-    border-color: rgba(216, 169, 67, .38);
-    box-shadow: 0 12px 28px -16px rgba(216, 169, 67, .45);
+    border-color: color-mix(in oklab, var(--t-primary) 38%, transparent);
+    box-shadow: 0 12px 28px -16px color-mix(in oklab, var(--t-primary) 45%, transparent);
   }
 }
 
@@ -199,8 +249,8 @@ input::placeholder {
   gap: .45rem;
   min-height: 8.5rem;
   height: 100%;
-  border: 1px solid rgba(142, 106, 42, .45);
-  background: rgba(10, 10, 11, .88);
+  border: 1px solid color-mix(in oklab, var(--t-secondary) 45%, transparent);
+  background: color-mix(in oklab, var(--t-card) 88%, transparent);
   padding: .75rem .6rem;
   text-align: center;
   transition:
@@ -226,19 +276,19 @@ input::placeholder {
 @media (hover: hover) {
   .table-free:hover {
     transform: translateY(-2px);
-    border-color: rgba(248, 231, 176, .72);
-    box-shadow: 0 0 18px rgba(216, 169, 67, .2);
+    border-color: color-mix(in oklab, var(--t-accent) 72%, transparent);
+    box-shadow: 0 0 18px color-mix(in oklab, var(--t-primary) 20%, transparent);
   }
 
   .table-occupied-soft:hover {
     transform: translateY(-2px);
-    border-color: rgba(248, 231, 176, .72);
+    border-color: color-mix(in oklab, var(--t-accent) 72%, transparent);
   }
 }
 
 .table-selected {
-  border-color: rgba(255, 242, 188, .95);
-  box-shadow: 0 0 30px rgba(216, 169, 67, .42), inset 0 0 22px rgba(248, 231, 176, .09);
+  border-color: var(--t-accent);
+  box-shadow: 0 0 30px color-mix(in oklab, var(--t-primary) 42%, transparent), inset 0 0 22px color-mix(in oklab, var(--t-accent) 9%, transparent);
 }
 
 .table-occupied {
@@ -249,8 +299,8 @@ input::placeholder {
 
 /* En el área de personal la mesa ocupada sigue siendo seleccionable (se reportan pedidos). */
 .table-occupied-soft {
-  border-color: rgba(216, 169, 67, .55);
-  box-shadow: inset 0 0 18px rgba(216, 169, 67, .12);
+  border-color: color-mix(in oklab, var(--t-primary) 55%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in oklab, var(--t-primary) 12%, transparent);
 }
 
 .chip {
@@ -262,30 +312,33 @@ input::placeholder {
   font-size: .7rem;
   text-transform: uppercase;
   letter-spacing: .08em;
-  border: 1px solid rgba(255, 255, 255, .14);
+  white-space: nowrap;
+  border: 1px solid color-mix(in oklab, var(--t-ink) 14%, transparent);
   transition: color var(--motion-base) var(--motion-ease), border-color var(--motion-base) var(--motion-ease);
 }
 
-.chip-pending { color: #f8e7b0; border-color: rgba(216, 169, 67, .4); }
-.chip-progress { color: #8ec5ff; border-color: rgba(142, 197, 255, .4); }
-.chip-ready { color: #86efac; border-color: rgba(134, 239, 172, .4); }
-.chip-muted { color: #a1a1aa; }
+.chip-pending { color: var(--t-heading); border-color: color-mix(in oklab, var(--t-primary) 40%, transparent); }
+.chip-progress { color: var(--t-info); border-color: color-mix(in oklab, var(--t-info) 40%, transparent); }
+.chip-ready { color: var(--t-success); border-color: color-mix(in oklab, var(--t-success) 40%, transparent); }
+.chip-warn { color: var(--t-warning); border-color: color-mix(in oklab, var(--t-warning) 45%, transparent); }
+.chip-danger { color: var(--t-danger); border-color: color-mix(in oklab, var(--t-danger) 45%, transparent); }
+.chip-muted { color: var(--t-muted); }
 
 .field-chip {
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
   gap: .6rem;
-  border: 1px solid rgba(216, 169, 67, .32);
-  background: rgba(10, 10, 11, .82);
+  border: 1px solid color-mix(in oklab, var(--t-primary) 32%, transparent);
+  background: color-mix(in oklab, var(--t-card) 82%, transparent);
   padding: .55rem .8rem;
-  color: #d8a943;
+  color: var(--t-primary);
 }
 
 .input-label {
   display: grid;
   gap: .45rem;
-  color: #d8a943;
+  color: var(--t-primary);
   font-size: .82rem;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -296,10 +349,10 @@ input::placeholder {
   min-height: 3rem;
   align-items: center;
   gap: .75rem;
-  border: 1px solid rgba(255, 255, 255, .12);
-  background: rgba(255, 255, 255, .035);
+  border: 1px solid color-mix(in oklab, var(--t-ink) 12%, transparent);
+  background: color-mix(in oklab, var(--t-ink) 3.5%, transparent);
   padding: 0 .9rem;
-  color: #d8a943;
+  color: var(--t-primary);
   transition:
     border-color var(--motion-base) var(--motion-ease),
     background-color var(--motion-base) var(--motion-ease),
@@ -307,9 +360,139 @@ input::placeholder {
 }
 
 .input-shell:focus-within {
-  border-color: rgba(216, 169, 67, .6);
-  background-color: rgba(255, 255, 255, .05);
-  box-shadow: 0 0 0 3px rgba(216, 169, 67, .12);
+  border-color: color-mix(in oklab, var(--t-primary) 60%, transparent);
+  background-color: color-mix(in oklab, var(--t-ink) 5%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--t-primary) 12%, transparent);
+}
+
+/* ---------- Plataforma operativa ---------- */
+
+/* Campo de formulario reutilizable (select, textarea, input sueltos). */
+.field {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid color-mix(in oklab, var(--t-ink) 14%, transparent);
+  background: color-mix(in oklab, var(--t-card) 70%, transparent);
+  color: var(--t-text);
+  padding: .5rem .75rem;
+  font-size: .9rem;
+  outline: 0;
+}
+
+.field:focus {
+  border-color: color-mix(in oklab, var(--t-primary) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--t-primary) 12%, transparent);
+}
+
+select.field option {
+  background: var(--t-card);
+  color: var(--t-text);
+}
+
+.field-label {
+  display: grid;
+  gap: .35rem;
+  font-size: .75rem;
+  color: var(--t-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.btn {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--t-ink) 15%, transparent);
+  padding: .45rem 1rem;
+  font-size: .875rem;
+  color: var(--t-text);
+}
+
+.btn:hover:not(:disabled) { border-color: color-mix(in oklab, var(--t-primary) 55%, transparent); }
+.btn:disabled { opacity: .5; }
+.btn-primary { border-color: color-mix(in oklab, var(--t-primary) 60%, transparent); font-weight: 600; }
+.btn-danger { color: var(--t-danger); border-color: color-mix(in oklab, var(--t-danger) 40%, transparent); }
+.btn-sm { min-height: 2rem; padding: .25rem .75rem; font-size: .8rem; }
+
+/* Objetivos táctiles de al menos 44 px en pantallas de toque (Android). */
+@media (pointer: coarse) {
+  .btn, .field { min-height: 2.75rem; }
+}
+
+/* Estado en vivo de la mesa: borde y franja de color sin entrar en ella. */
+.live-AVAILABLE { --live: var(--t-success); }
+.live-OCCUPIED { --live: var(--t-info); }
+.live-SENT { --live: var(--t-primary); }
+.live-PREPARING { --live: var(--t-warning); }
+.live-READY { --live: var(--t-success); }
+.live-DELIVERED { --live: var(--t-accent); }
+.live-PAYMENT_PENDING { --live: var(--t-secondary); }
+.live-ATTENTION { --live: var(--t-danger); }
+.live-MAINTENANCE { --live: var(--t-muted); }
+
+.live-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--live) 55%, transparent);
+  background: color-mix(in oklab, var(--t-card) 90%, var(--live));
+}
+
+.live-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--live);
+}
+
+.live-dot {
+  display: inline-block;
+  flex: none;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 999px;
+  background: var(--live);
+}
+
+.live-READY .live-dot,
+.live-ATTENTION .live-dot {
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--live) 25%, transparent); }
+}
+
+.is-late {
+  color: var(--t-danger);
+  font-weight: 600;
+}
+
+/* Barras de métricas (sin librería de gráficos). */
+.bar-track {
+  height: .5rem;
+  background: color-mix(in oklab, var(--t-ink) 8%, transparent);
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--t-primary);
+}
+
+/* Logo del restaurante: sin marco ni fondo artificial. */
+.brand-logo {
+  display: block;
+  width: auto;
+  max-width: 12rem;
+  object-fit: contain;
+}
+
+/* Barra inferior de navegación en móvil: respeta la zona segura de Android/iOS. */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Movimiento reducido: el contenido aparece en su estado final, sin desplazamientos. */

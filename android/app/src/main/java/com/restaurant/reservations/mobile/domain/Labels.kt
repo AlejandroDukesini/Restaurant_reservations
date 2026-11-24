@@ -7,11 +7,18 @@ import java.util.Locale
 
 // Mismas etiquetas que site_web/src/utils/status.js.
 
+// Estados del backend desde la migracion V2 (y los antiguos, por compatibilidad).
 val ORDER_STATUS_LABEL = mapOf(
-    "PENDING" to "Pendiente",
+    "PENDING" to "En cocina",
+    "PREPARING" to "En preparación",
+    "READY" to "Listo",
+    "PACKING" to "Empacando",
+    "PACKED" to "Empacado",
+    "ON_THE_WAY" to "En camino",
+    "DELIVERED" to "Entregado",
+    "CANCELLED" to "Cancelado",
     "IN_PROGRESS" to "En preparación",
-    "COMPLETED" to "Completado",
-    "CANCELLED" to "Cancelado"
+    "COMPLETED" to "Completado"
 )
 
 val ITEM_STATUS_LABEL = mapOf(

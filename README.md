@@ -1,4 +1,4 @@
-![Vista del proyecto en ejecución](site_web.png)
+![Vista del proyecto en ejecución](image-1.png)
 
 # Maison Noir · Sistema de Operación de Restaurante
 
@@ -22,20 +22,26 @@ personal, menú y pedidos.
 
 ## Funcionalidades
 
-| Estado | Funcionalidad |
-| --- | --- |
-| ✅ Implementada (API + UI, con pruebas) | Login JWT con control de acceso por rol · mapa de mesas por zonas · pedidos por mesa con total calculado en el servidor · cola de cocina con receta y estado del pedido derivado de sus platos · CRUD de mesas, menú y personal · aislamiento de datos entre restaurantes |
-| ✅ Implementada solo en la API (con pruebas, sin pantalla en el SPA) | Reservas públicas y de cliente con control de aforo y de solapamiento (franjas de 2 h) · mapa de disponibilidad por fecha y hora · registro de clientes · registro de restaurantes |
-| ⚠️ Parcial | Generador de sitio web por restaurante: escribe archivos en `generated-websites/`, pero la aplicación no los sirve (ver `QA_AUDIT.md`, QA-FEAT-01) |
+| Estado                                                               | Funcionalidad                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✅ Implementada (API + UI, con pruebas)                              | Login JWT con control de acceso por rol · mapa de mesas por zonas · pedidos por mesa con total calculado en el servidor · cola de cocina con receta y estado del pedido derivado de sus platos · CRUD de mesas, menú y personal · aislamiento de datos entre restaurantes                                                                                                                                             |
+| ✅ Implementada solo en la API (con pruebas, sin pantalla en el SPA) | Reservas públicas y de cliente con control de aforo y de solapamiento (franjas de 2 h) · mapa de disponibilidad por fecha y hora · registro de clientes · registro de restaurantes                                                                                                                                                                                                                                    |
+| ✅ Plataforma operativa (API + UI, con pruebas)                      | Sesiones de mesa con estado en vivo · flujo mesero → cocina → mesero con tiempos medidos · domicilios con empaque y reparto · grupos con chat e identidad visual · notificaciones dirigidas · menú con categorías libres e imágenes · métricas de tiempos e ingresos · permisos configurables · sincronización en tiempo real (SSE) · PWA instalable. Detalle en [`PLATAFORMA_OPERACION.md`](PLATAFORMA_OPERACION.md) |
+| ⚠️ Parcial                                                           | Generador de sitio web por restaurante: escribe archivos en `generated-websites/`, pero la aplicación no los sirve (ver `QA_AUDIT.md`, QA-FEAT-01)                                                                                                                                                                                                                                                                    |
 
 ## Roles
 
-| Rol                         | Ruta      | Qué puede hacer                                                                                                                                                   |
-| --------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Administrador** (`ADMIN`) | `/admin`  | CRUD de mesas (incluye mover por coordenadas), personal (meseros y cocineros), menú con receta, y resumen de pedidos.                                             |
-| **Mesero** (`EMPLOYEE`)     | `/piso`   | Ver el mapa de mesas y tomar pedidos por mesa eligiendo platos del menú; enviarlos a cocina.                                                                      |
-| **Cocinero** (`COOK`)       | `/cocina` | Ver la cola de platos pendientes con su receta y marcar cada plato como _Preparando_ / _Listo_. Al quedar todos los platos listos, el pedido pasa a _Completado_. |
-| **Cliente** (`CUSTOMER`)    | (solo API) | Crear, consultar, modificar, confirmar y cancelar sus propias reservas.                                                                                         |
+| Rol                           | Ruta                                     | Qué puede hacer                                                                                                                                                          |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Gerente** (`ADMIN`)         | `/admin`, `/metricas` y todas las vistas | Mesas, menú (categorías, imágenes, precios, agotados), personal y permisos, grupos, plataformas y domiciliarios, identidad visual, métricas, pedidos y reservas.         |
+| **Mesero** (`EMPLOYEE`)       | `/piso`                                  | Ocupar mesas, registrar pedidos con modificaciones, recibir el aviso de "listo", entregar, pedir la cuenta y cerrar la mesa. Solo las mesas de sus grupos (o sin grupo). |
+| **Cocina** (`COOK`)           | `/cocina`                                | Pedidos por mesa/domicilio con receta, tiempo transcurrido frente al estimado, avance por plato o pedido, empaque de domicilios y "llamar mesero".                       |
+| **Domiciliario** (`DELIVERY`) | `/entregas`                              | Solo sus domicilios: dirección, teléfono, salida y entrega.                                                                                                              |
+| **Cliente** (`CUSTOMER`)      | (solo API)                               | Crear, consultar, modificar, confirmar y cancelar sus propias reservas.                                                                                                  |
+
+Todos los roles de personal tienen `/mensajes`. El gerente puede conceder permisos extra
+(ver métricas, administrar mesas, marcar agotados, gestionar domicilios, cancelar pedidos
+ajenos, acceso a cocina); ninguno da funciones de gerente.
 
 Los platos del menú **no son personalizables**: su receta (proteína, condimentos, ingredientes,
 notas de preparación) se define una vez y el cocinero la consulta desde la cola.
@@ -88,7 +94,7 @@ arranque se **siembran datos de demo**: un restaurante, 5 zonas, 16 mesas, 10 pl
 - **Base vacía:** Flyway ejecuta `V1__baseline_schema.sql`, que reproduce exactamente el esquema
   que creaba `ddl-auto: update` (mismos tipos, restricciones e índices).
 - **Base creada antes de Flyway** (con datos): al no encontrar `flyway_schema_history`, Flyway
-  registra la versión 1 como *línea base* **sin ejecutar** V1 y sin tocar tablas ni datos
+  registra la versión 1 como _línea base_ **sin ejecutar** V1 y sin tocar tablas ni datos
   (`baseline-on-migrate`). Después Hibernate solo **valida** (`ddl-auto: validate`): si el esquema
   no coincide con las entidades, la aplicación no arranca y no modifica nada.
 - Antes de adoptar una base de producción, compara su esquema con el de V1:
@@ -141,13 +147,13 @@ Abre `http://localhost:5173`. El servidor de Vite hace _proxy_ de `/api` hacia e
 
 Proyecto independiente en `android/` (no forma parte del build del backend ni de la imagen Docker).
 
-| | |
-| --- | --- |
-| Lenguaje / UI | Kotlin 2.0, Jetpack Compose (Material 3) |
-| Red | Retrofit 2.11 + OkHttp 4.12 + kotlinx.serialization; tiempo de espera de 15 s, como la web |
-| Sesión | JWT en `EncryptedSharedPreferences` (clave en el Android Keystore); se confirma con `GET /api/auth/me` al abrir la app; un 401 cierra la sesión |
-| Build | Android Gradle Plugin 8.6.1, Gradle 8.9, `compileSdk`/`targetSdk` 35, `minSdk` 26 (Android 8.0) |
-| JDK | 21 (LTS). `android/gradle/gradle-daemon-jvm.properties` hace que Gradle use un JDK 21 instalado aunque `JAVA_HOME` apunte a otra versión (Gradle 8.9 no arranca sobre JDK 25) |
+|               |                                                                                                                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lenguaje / UI | Kotlin 2.0, Jetpack Compose (Material 3)                                                                                                                                      |
+| Red           | Retrofit 2.11 + OkHttp 4.12 + kotlinx.serialization; tiempo de espera de 15 s, como la web                                                                                    |
+| Sesión        | JWT en `EncryptedSharedPreferences` (clave en el Android Keystore); se confirma con `GET /api/auth/me` al abrir la app; un 401 cierra la sesión                               |
+| Build         | Android Gradle Plugin 8.6.1, Gradle 8.9, `compileSdk`/`targetSdk` 35, `minSdk` 26 (Android 8.0)                                                                               |
+| JDK           | 21 (LTS). `android/gradle/gradle-daemon-jvm.properties` hace que Gradle use un JDK 21 instalado aunque `JAVA_HOME` apunte a otra versión (Gradle 8.9 no arranca sobre JDK 25) |
 
 Pantallas por rol, con los mismos endpoints y permisos que la web (el servidor sigue decidiendo):
 
@@ -159,8 +165,8 @@ Pantallas por rol, con los mismos endpoints y permisos que la web (el servidor s
 **Abrir y ejecutar** (requiere [Android Studio](https://developer.android.com/studio), que trae el SDK y un JDK compatible):
 
 1. Arrancar el backend en local (`.\gradlew.bat bootRun`, puerto 8081).
-2. En Android Studio: *File → Open* → carpeta `android/`. Dejar que sincronice Gradle.
-3. Crear un emulador (*Device Manager*) y pulsar *Run*. La variante **debug** apunta a
+2. En Android Studio: _File → Open_ → carpeta `android/`. Dejar que sincronice Gradle.
+3. Crear un emulador (_Device Manager_) y pulsar _Run_. La variante **debug** apunta a
    `http://10.0.2.2:8081/` (el `localhost` del PC visto desde el emulador). Para un teléfono físico
    en la misma red, cambiar `API_BASE_URL` de `debug` en `android/app/build.gradle.kts` por la IP del PC.
 4. Entrar con una cuenta de demostración (p. ej. `mesero1@maisonnoir.com`).
@@ -220,21 +226,24 @@ Todas son del backend y opcionales en desarrollo; el frontend no usa variables d
 en la terminal, en la configuración de ejecución del IDE o en tu plataforma de despliegue. **No
 guardes secretos en el repositorio** (`.env` y `.env.*` están en `.gitignore`).
 
-| Variable | Por defecto | Uso |
-| --- | --- | --- |
-| `SPRING_DATASOURCE_URL` / `_USERNAME` / `_PASSWORD` | `jdbc:postgresql://localhost:5432/restaurant_reservations`, `postgres`, `postgres` | Conexión a PostgreSQL |
-| `JWT_SECRET` | *(vacío)* | Clave HS512 (≥ 64 bytes). Si falta, se genera una clave efímera y los tokens caducan al reiniciar. **Obligatoria en producción.** |
-| `JWT_EXPIRATION` | `86400000` (24 h) | Vigencia del token en ms |
-| `SEED_ENABLED` / `SEED_PASSWORD` | `true` / `password123` | Siembra de demo. En un despliegue real: `SEED_ENABLED=false` o una contraseña única |
-| `JPA_DDL_AUTO` | `validate` | Hibernate valida el esquema; lo crean y evolucionan las migraciones Flyway |
-| `FLYWAY_ENABLED` | `true` | Ejecutar las migraciones al arrancar |
-| `JPA_SHOW_SQL` | `false` | Mostrar el SQL en el log |
-| `PORT` | `8081` | Puerto HTTP (Railway lo inyecta) |
-| `COOKIE_SECURE` | `true` | Atributo `Secure` de la cookie de sesión del contenedor |
-| `RATE_LIMIT_ENABLED` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_PUBLIC` | `true` / `10` / `20` | Peticiones POST por minuto e IP en `/api/auth/**` y `/api/public/**` |
-| `APP_RATE_LIMIT_TRUST_FORWARDED_HEADER` | `true` | Tomar la IP del cliente de `X-Forwarded-For` |
-| `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | `http://localhost:*,http://127.0.0.1:*` | Orígenes CORS permitidos (separados por comas) |
-| `LOG_LEVEL_SECURITY` | `INFO` | Nivel de log de Spring Security |
+| Variable                                                        | Por defecto                                                                        | Uso                                                                                                                                      |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `SPRING_DATASOURCE_URL` / `_USERNAME` / `_PASSWORD`             | `jdbc:postgresql://localhost:5432/restaurant_reservations`, `postgres`, `postgres` | Conexión a PostgreSQL                                                                                                                    |
+| `JWT_SECRET`                                                    | _(vacío)_                                                                          | Clave HS512 (≥ 64 bytes). Si falta, se genera una clave efímera y los tokens caducan al reiniciar. **Obligatoria en producción.**        |
+| `JWT_EXPIRATION`                                                | `86400000` (24 h)                                                                  | Vigencia del token en ms                                                                                                                 |
+| `SEED_ENABLED` / `SEED_PASSWORD`                                | `true` / `password123`                                                             | Siembra de demo. En un despliegue real: `SEED_ENABLED=false` o una contraseña única                                                      |
+| `JPA_DDL_AUTO`                                                  | `validate`                                                                         | Hibernate valida el esquema; lo crean y evolucionan las migraciones Flyway                                                               |
+| `FLYWAY_ENABLED`                                                | `true`                                                                             | Ejecutar las migraciones al arrancar                                                                                                     |
+| `JPA_SHOW_SQL`                                                  | `false`                                                                            | Mostrar el SQL en el log                                                                                                                 |
+| `PORT`                                                          | `8081`                                                                             | Puerto HTTP (Railway lo inyecta)                                                                                                         |
+| `COOKIE_SECURE`                                                 | `true`                                                                             | Atributo `Secure` de la cookie de sesión del contenedor                                                                                  |
+| `RATE_LIMIT_ENABLED` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_PUBLIC` | `true` / `10` / `20`                                                               | Peticiones POST por minuto e IP en `/api/auth/**` y `/api/public/**`                                                                     |
+| `APP_RATE_LIMIT_TRUST_FORWARDED_HEADER`                         | `true`                                                                             | Tomar la IP del cliente de `X-Forwarded-For`                                                                                             |
+| `APP_CORS_ALLOWED_ORIGIN_PATTERNS`                              | `http://localhost:*,http://127.0.0.1:*`                                            | Orígenes CORS permitidos (separados por comas)                                                                                           |
+| `LOG_LEVEL_SECURITY`                                            | `INFO`                                                                             | Nivel de log de Spring Security                                                                                                          |
+| `TZ`                                                            | zona del sistema                                                                   | Zona horaria de la JVM. Las marcas de tiempo y el filtro "Hoy" de métricas usan esta zona: en Railway definir p. ej. `TZ=America/Bogota` |
+| `MEDIA_MAX_BYTES`                                               | `3145728` (3 MB)                                                                   | Peso máximo por imagen subida (logo, portada, platos)                                                                                    |
+| `REALTIME_TIMEOUT_MS` / `REALTIME_HEARTBEAT_MS`                 | `1800000` / `20000`                                                                | Duración de cada conexión SSE (el cliente reconecta solo) y latido contra cortes de proxy                                                |
 
 ---
 
@@ -247,6 +256,10 @@ Las crea la siembra con la contraseña **`password123`** (o la que definas en `S
 | Administrador | `admin@maisonnoir.com`                              |
 | Mesero        | `mesero1@maisonnoir.com` · `mesero2@maisonnoir.com` |
 | Cocinero      | `cocina1@maisonnoir.com` · `cocina2@maisonnoir.com` |
+| Domiciliario  | `domicilios1@maisonnoir.com`                        |
+
+La siembra crea además los grupos _Salón_, _Cocina_ y _Domicilios_ y las plataformas
+_Domicilio propio_, _Rappi_ y _DiDi Food_.
 
 En la pantalla de login hay botones para rellenar estas credenciales rápidamente.
 
@@ -268,11 +281,10 @@ pnpm test:coverage     # con cobertura
 
 Última ejecución verificada (local, 2026-10-04):
 
-| Suite | Resultado | Cobertura de líneas | Cobertura de ramas |
-| --- | --- | --- | --- |
-| Backend (JUnit 5 + MockMvc + H2) | 115 aprobadas · 0 fallidas | 97.1 % | 69.8 % |
-| Frontend (Vitest + Testing Library) | 44 aprobadas · 0 fallidas | 53.1 % | 54.3 % |
-
+| Suite                               | Resultado                  | Cobertura de líneas | Cobertura de ramas |
+| ----------------------------------- | -------------------------- | ------------------- | ------------------ |
+| Backend (JUnit 5 + MockMvc + H2)    | 115 aprobadas · 0 fallidas | 97.1 %              | 69.8 %             |
+| Frontend (Vitest + Testing Library) | 44 aprobadas · 0 fallidas  | 53.1 %              | 54.3 %             |
 
 Qué se prueba: autenticación JWT, control de acceso por rol, aislamiento entre restaurantes,
 reglas de reservas (aforo y solapamiento), flujo pedido → cocina → pedido completado, CRUD de
@@ -320,7 +332,7 @@ En Railway, `railway.toml` construye con ese Dockerfile; define allí las variab
   proxy en `site_web/vite.config.js` para que coincida.
 - **`Java home ... is invalid`, `Unsupported class file major version` o Gradle falla al
   arrancar**: Gradle se está ejecutando con un JDK distinto de 21. Comprueba con
-  `./gradlew --version` (línea *Launcher/Daemon JVM*) y apunta `JAVA_HOME` o
+  `./gradlew --version` (línea _Launcher/Daemon JVM_) y apunta `JAVA_HOME` o
   `org.gradle.java.home` (en `~/.gradle/gradle.properties`) a un JDK 21.
 - **`./gradlew: Permission denied`** (Linux/macOS): `chmod +x gradlew`.
 - **`Connection to localhost:5432 refused`** al arrancar el backend: PostgreSQL no está en marcha o
@@ -379,27 +391,27 @@ reservas/
 
 ## Principales endpoints de la API
 
-| Método              | Ruta                                             | Rol                  | Descripción                              |
-| ------------------- | ------------------------------------------------ | -------------------- | ---------------------------------------- |
-| POST                | `/api/auth/login`                                | público              | Iniciar sesión, devuelve el JWT          |
-| POST                | `/api/auth/register`                             | público              | Alta de cliente (siempre rol `CUSTOMER`) |
-| GET                 | `/api/public/restaurants[/{slug}[/tables]]`      | público              | Restaurantes activos y sus mesas         |
-| GET                 | `/api/public/restaurants/{id}/table-map?date=&time=` | público          | Disponibilidad de mesas por franja       |
-| POST                | `/api/public/reservations`                       | público              | Reserva sin cuenta (queda confirmada)    |
-| GET/POST/PUT/DELETE | `/api/customer/reservations[/{id}]`              | cliente/mesero/admin | Reservas propias (o del restaurante, para el personal) |
-| PUT                 | `/api/customer/reservations/{id}/confirm`·`/cancel` | cliente/mesero/admin | Confirmar o cancelar                  |
-| GET                 | `/api/staff/tables`                              | staff                | Mesas del restaurante                    |
-| GET                 | `/api/staff/menu`                                | staff                | Menú con receta                          |
-| POST                | `/api/employee/orders`                           | mesero/admin         | Crear pedido para una mesa               |
-| GET                 | `/api/employee/tables/{id}/orders`               | mesero/admin         | Pedidos de una mesa                      |
-| PUT/DELETE          | `/api/employee/orders/{id}[/status]`             | autor/admin          | Cambiar estado o eliminar un pedido      |
-| GET                 | `/api/cook/queue`                                | cocinero/admin       | Cola de platos por preparar (con receta) |
-| PUT                 | `/api/cook/order-items/{id}/status?status=READY` | cocinero/admin       | Marcar plato listo                       |
-| GET/POST/PUT/DELETE | `/api/admin/staff[/{id}]`                        | admin                | CRUD de personal                         |
-| GET/POST/PUT/DELETE | `/api/admin/menu[/{id}]`                         | admin                | CRUD de menú                             |
-| POST/PUT/DELETE     | `/api/employee/tables[/{id}]`                    | admin/mesero         | Crear, mover y eliminar mesas            |
-| GET                 | `/api/admin/orders`                              | admin                | Todos los pedidos                        |
-| POST/GET/PUT/DELETE | `/api/admin/restaurants[/register\|/{id}]`       | admin                | Alta y gestión del restaurante propio    |
+| Método              | Ruta                                                 | Rol                  | Descripción                                            |
+| ------------------- | ---------------------------------------------------- | -------------------- | ------------------------------------------------------ |
+| POST                | `/api/auth/login`                                    | público              | Iniciar sesión, devuelve el JWT                        |
+| POST                | `/api/auth/register`                                 | público              | Alta de cliente (siempre rol `CUSTOMER`)               |
+| GET                 | `/api/public/restaurants[/{slug}[/tables]]`          | público              | Restaurantes activos y sus mesas                       |
+| GET                 | `/api/public/restaurants/{id}/table-map?date=&time=` | público              | Disponibilidad de mesas por franja                     |
+| POST                | `/api/public/reservations`                           | público              | Reserva sin cuenta (queda confirmada)                  |
+| GET/POST/PUT/DELETE | `/api/customer/reservations[/{id}]`                  | cliente/mesero/admin | Reservas propias (o del restaurante, para el personal) |
+| PUT                 | `/api/customer/reservations/{id}/confirm`·`/cancel`  | cliente/mesero/admin | Confirmar o cancelar                                   |
+| GET                 | `/api/staff/tables`                                  | staff                | Mesas del restaurante                                  |
+| GET                 | `/api/staff/menu`                                    | staff                | Menú con receta                                        |
+| POST                | `/api/employee/orders`                               | mesero/admin         | Crear pedido para una mesa                             |
+| GET                 | `/api/employee/tables/{id}/orders`                   | mesero/admin         | Pedidos de una mesa                                    |
+| PUT/DELETE          | `/api/employee/orders/{id}[/status]`                 | autor/admin          | Cambiar estado o eliminar un pedido                    |
+| GET                 | `/api/cook/queue`                                    | cocinero/admin       | Cola de platos por preparar (con receta)               |
+| PUT                 | `/api/cook/order-items/{id}/status?status=READY`     | cocinero/admin       | Marcar plato listo                                     |
+| GET/POST/PUT/DELETE | `/api/admin/staff[/{id}]`                            | admin                | CRUD de personal                                       |
+| GET/POST/PUT/DELETE | `/api/admin/menu[/{id}]`                             | admin                | CRUD de menú                                           |
+| POST/PUT/DELETE     | `/api/employee/tables[/{id}]`                        | admin/mesero         | Crear, mover y eliminar mesas                          |
+| GET                 | `/api/admin/orders`                                  | admin                | Todos los pedidos                                      |
+| POST/GET/PUT/DELETE | `/api/admin/restaurants[/register\|/{id}]`           | admin                | Alta y gestión del restaurante propio                  |
 
 Los errores que gestionan los controladores usan el formato JSON
 `{ "status", "error", "message", "details" }`. Los 401/403 que emite directamente la cadena de
@@ -438,7 +450,7 @@ configura `SEED_PASSWORD` / `SEED_ENABLED` (QA-SEC-04).
 ## Limitaciones conocidas
 
 - La app Android (`android/`) está en pruebas en `Beta`; ver su lista de verificación.
-- La gestión de reservas está en el panel de administración (pestaña *Reservas*); el mesero no
+- La gestión de reservas está en el panel de administración (pestaña _Reservas_); el mesero no
   tiene vista de reservas porque la API no expone un listado por restaurante para ese rol.
 - Los estados de pedido y reserva se guardan como ordinal (QA-DATA-01).
 - Las pruebas de integración usan H2; las migraciones se prueban contra PostgreSQL real solo si se
@@ -455,35 +467,35 @@ configura `SEED_PASSWORD` / `SEED_ENABLED` (QA-SEC-04).
 
 El endpoint crítico es `GET /api/cook/queue`, que agrega todos los platos pendientes de los
 pedidos activos con su receta, mesa y mesero. La consulta original traía solo los `Order` y
-disparaba carga *lazy* de cada relación (problema **N+1**). Se reescribió
+disparaba carga _lazy_ de cada relación (problema **N+1**). Se reescribió
 `OrderRepository.findActiveByRestaurant` con `JOIN FETCH` para resolver todo en una sola consulta.
 
 Medido con **k6** sobre una cola de **450 platos** (150 pedidos activos), 20 usuarios concurrentes:
 
-| Métrica                     |  Antes (N+1) | Después (`JOIN FETCH`) |    Mejora |
-| --------------------------- | -----------: | ---------------------: | --------: |
-| **Consultas SQL / request** |      **157** |                  **3** | **98 % ↓** |
-| Throughput (RPS)            |         2.82 |                   ~52  | **18× ↑** |
-| Latencia media              |       5.53 s |                 309 ms |   94 % ↓  |
-| Latencia **p95**            |       8.77 s |                 767 ms |   91 % ↓  |
-| Latencia **p99**            |       9.13 s |                 1.24 s |   86 % ↓  |
-| Tasa de éxito               |         100% |                   100% |     —     |
+| Métrica                     | Antes (N+1) | Después (`JOIN FETCH`) |     Mejora |
+| --------------------------- | ----------: | ---------------------: | ---------: |
+| **Consultas SQL / request** |     **157** |                  **3** | **98 % ↓** |
+| Throughput (RPS)            |        2.82 |                    ~52 |  **18× ↑** |
+| Latencia media              |      5.53 s |                 309 ms |     94 % ↓ |
+| Latencia **p95**            |      8.77 s |                 767 ms |     91 % ↓ |
+| Latencia **p99**            |      9.13 s |                 1.24 s |     86 % ↓ |
+| Tasa de éxito               |        100% |                   100% |          — |
 
-Apoyado en el **pool de conexiones HikariCP** de Spring Boot y en el *fetching* en un solo viaje
+Apoyado en el **pool de conexiones HikariCP** de Spring Boot y en el _fetching_ en un solo viaje
 a la base de datos, en lugar de cientos de round-trips por petición.
 
 ### Frontend · Google Lighthouse (build de producción)
 
 | Categoría      | 📱 Móvil | 🖥️ Escritorio |
-| -------------- | :------: | :------------: |
-| Performance    |  97–99   |    **100**     |
-| Accessibility  | **100**  |    **100**     |
-| Best Practices | **100**  |    **100**     |
-| SEO            | **100**  |    **100**     |
+| -------------- | :------: | :-----------: |
+| Performance    |  97–99   |    **100**    |
+| Accessibility  | **100**  |    **100**    |
+| Best Practices | **100**  |    **100**    |
+| SEO            | **100**  |    **100**    |
 
 **Core Web Vitals:** LCP **1.7 s** (móvil) / **0.4 s** (escritorio) · TBT ≤ **140 ms** · CLS **0**.
 
-Logrado con: build de Vite con *code-splitting*, *tree-shaking* y minificación; CSS purgado por
+Logrado con: build de Vite con _code-splitting_, _tree-shaking_ y minificación; CSS purgado por
 Tailwind (bundle único y liviano); contraste AA en toda la UI; favicon SVG y metadatos
 (`meta description` + `robots.txt`) para 100 en Best Practices y SEO. CLS 0 = cero saltos de layout.
 

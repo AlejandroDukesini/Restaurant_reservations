@@ -1,6 +1,13 @@
 package com.restaurant.reservations.support;
 
+import com.restaurant.reservations.model.DeliveryDriver;
+import com.restaurant.reservations.model.DeliveryPlatform;
 import com.restaurant.reservations.model.MenuCategory;
+import com.restaurant.reservations.model.StaffGroup;
+import com.restaurant.reservations.repository.DeliveryDriverRepository;
+import com.restaurant.reservations.repository.DeliveryPlatformRepository;
+import com.restaurant.reservations.repository.MenuCategoryRepository;
+import com.restaurant.reservations.repository.StaffGroupRepository;
 import com.restaurant.reservations.model.MenuItem;
 import com.restaurant.reservations.model.Restaurant;
 import com.restaurant.reservations.model.RestaurantTable;
@@ -33,6 +40,10 @@ public class TestData {
     private final TableRepository tableRepository;
     private final UserRepository userRepository;
     private final MenuItemRepository menuItemRepository;
+    private final MenuCategoryRepository categoryRepository;
+    private final StaffGroupRepository groupRepository;
+    private final DeliveryPlatformRepository platformRepository;
+    private final DeliveryDriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
     private final AtomicInteger sequence = new AtomicInteger();
 
@@ -45,6 +56,10 @@ public class TestData {
         TableRepository tableRepository,
         UserRepository userRepository,
         MenuItemRepository menuItemRepository,
+        MenuCategoryRepository categoryRepository,
+        StaffGroupRepository groupRepository,
+        DeliveryPlatformRepository platformRepository,
+        DeliveryDriverRepository driverRepository,
         PasswordEncoder passwordEncoder
     ) {
         this.restaurantRepository = restaurantRepository;
@@ -52,6 +67,10 @@ public class TestData {
         this.tableRepository = tableRepository;
         this.userRepository = userRepository;
         this.menuItemRepository = menuItemRepository;
+        this.categoryRepository = categoryRepository;
+        this.groupRepository = groupRepository;
+        this.platformRepository = platformRepository;
+        this.driverRepository = driverRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -134,12 +153,40 @@ public class TestData {
         return tableRepository.save(table);
     }
 
+    public MenuCategory category(Restaurant restaurant, String name) {
+        return categoryRepository.findFirstByRestaurantIdAndActiveTrueAndNameIgnoreCase(restaurant.getId(), name)
+            .orElseGet(() -> categoryRepository.save(new MenuCategory(restaurant.getId(), name, 1)));
+    }
+
+    public StaffGroup group(Restaurant restaurant, String name, User... members) {
+        StaffGroup group = new StaffGroup(restaurant.getId(), name);
+        group.getMembers().addAll(java.util.List.of(members));
+        return groupRepository.save(group);
+    }
+
+    public DeliveryPlatform platform(Restaurant restaurant, String name) {
+        return platformRepository.save(new DeliveryPlatform(restaurant.getId(), name));
+    }
+
+    public DeliveryDriver driver(Restaurant restaurant, User account) {
+        DeliveryDriver driver = new DeliveryDriver(restaurant.getId(),
+            account != null ? account.getName() : "Domiciliario " + sequence.incrementAndGet());
+        driver.setUser(account);
+        return driverRepository.save(driver);
+    }
+
+    public User withPermissions(User user, String permissions) {
+        user.setPermissions(permissions);
+        return userRepository.save(user);
+    }
+
     public MenuItem menuItem(Restaurant restaurant) {
         return menuItem(restaurant, "Plato " + sequence.incrementAndGet(), 10.0);
     }
 
     public MenuItem menuItem(Restaurant restaurant, String name, double price) {
-        MenuItem item = new MenuItem(name, MenuCategory.MAIN, price, restaurant);
+        MenuItem item = new MenuItem(name, category(restaurant, "Platos fuertes"), price, restaurant);
+        item.setPrepMinutes(10);
         item.setProtein("Pollo");
         item.setCondiments("Sal");
         item.setIngredients("Ingrediente de prueba");

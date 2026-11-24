@@ -10,5 +10,9 @@ import org.springframework.stereotype.Repository;
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     List<MenuItem> findByRestaurantIdAndActiveTrue(Long restaurantId);
 
+    List<MenuItem> findByRestaurantId(Long restaurantId);
+
     Optional<MenuItem> findByIdAndRestaurantId(Long id, Long restaurantId);
+
+    long countByCategoryIdAndActiveTrue(Long categoryId);
 }

@@ -9,7 +9,10 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.OptimisticLockingFailureException;
+import com.restaurant.reservations.exception.StateConflictException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -50,6 +53,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReservationConflictException.class)
     public ResponseEntity<ApiErrorResponse> handleConflict(ReservationConflictException exception) {
         return error(HttpStatus.CONFLICT, messageOr(exception, "Reservation conflict"));
+    }
+
+    @ExceptionHandler(StateConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleStateConflict(StateConflictException exception) {
+        return error(HttpStatus.CONFLICT, messageOr(exception, "Conflict with current state"));
+    }
+
+    // Restricciones unicas de la base (p. ej. dos sesiones abiertas en la misma mesa por
+    // peticiones simultaneas): el estado ya cambio, el cliente debe recargar.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleIntegrity(DataIntegrityViolationException exception) {
+        log.warn("Violacion de integridad: {}", exception.getMostSpecificCause().getClass().getSimpleName());
+        return error(HttpStatus.CONFLICT, "The resource changed concurrently. Reload and retry.");
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleUploadSize(MaxUploadSizeExceededException exception) {
+        return error(HttpStatus.PAYLOAD_TOO_LARGE, "File too large");
     }
 
     @ExceptionHandler(BusinessException.class)

@@ -1,7 +1,12 @@
 package com.restaurant.reservations.config;
 
 import java.io.IOException;
+import org.springframework.boot.web.server.MimeMappings;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -20,6 +25,11 @@ public class SpaWebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // PWA: el service worker y el manifest se revalidan siempre; si se cachearan, los
+        // dispositivos instalados no detectarian las versiones nuevas de la aplicacion.
+        registry.addResourceHandler("/sw.js", "/manifest.webmanifest")
+            .addResourceLocations("classpath:/static/")
+            .setCacheControl(CacheControl.noCache());
         registry.addResourceHandler("/**")
             .addResourceLocations("classpath:/static/")
             .resourceChain(true)
@@ -38,5 +48,15 @@ public class SpaWebConfig implements WebMvcConfigurer {
                         : new ClassPathResource("/static/index.html");
                 }
             });
+    }
+
+    /** Tipo MIME estandar del manifest de la PWA (Tomcat no lo conoce). */
+    @Bean
+    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> pwaMimeTypes() {
+        return factory -> {
+            MimeMappings mappings = new MimeMappings(MimeMappings.DEFAULT);
+            mappings.add("webmanifest", "application/manifest+json");
+            factory.setMimeMappings(mappings);
+        };
     }
 }

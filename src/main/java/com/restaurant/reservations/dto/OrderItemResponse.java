@@ -7,6 +7,8 @@ public record OrderItemResponse(
     int quantity,
     double price,
     String status,
-    String notes
+    String notes,
+    String categoryName,
+    Integer prepMinutes
 ) {
 }

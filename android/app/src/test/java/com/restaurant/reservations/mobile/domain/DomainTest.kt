@@ -83,7 +83,10 @@ class LabelsTest {
 
     @Test
     fun lasEtiquetasCubrenTodosLosEstadosDelBackend() {
-        assertEquals(setOf("PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"), ORDER_STATUS_LABEL.keys)
+        assertEquals(
+            setOf("PENDING", "PREPARING", "READY", "PACKING", "PACKED", "ON_THE_WAY", "DELIVERED", "CANCELLED", "IN_PROGRESS", "COMPLETED"),
+            ORDER_STATUS_LABEL.keys
+        )
         assertEquals(setOf("PENDING", "PREPARING", "READY"), ITEM_STATUS_LABEL.keys)
         assertEquals(setOf("PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"), RESERVATION_STATUS_LABEL.keys)
         assertEquals(setOf("STARTER", "MAIN", "DESSERT", "DRINK"), CATEGORY_LABEL.keys)

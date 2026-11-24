@@ -1,7 +1,7 @@
 package com.restaurant.reservations.controller;
 
 import com.restaurant.reservations.dto.CookQueueItem;
-import com.restaurant.reservations.service.CookService;
+import com.restaurant.reservations.service.KitchenService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasAnyRole('ADMIN', 'COOK')")
 public class CookController {
 
-    private final CookService cookService;
+    private final KitchenService cookService;
 
-    public CookController(CookService cookService) {
+    public CookController(KitchenService cookService) {
         this.cookService = cookService;
     }
 
